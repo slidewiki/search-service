@@ -14,9 +14,18 @@ module.exports = {
     getResults: function(request, reply){
 
         // parse query params
-        var queryparams = helper.parse(request.params.queryparams);
+        helper.parse(request.params.queryparams).then( (queryparams) => {
+            // fetch results from SOLR
+            solrClient.get(queryparams).then( (results) => {
+                reply(results);
+            }).catch( (error) => {
+                reply(boom.badImplementation());
+            });
+        }).catch( (error) => {
+            reply(boom.badImplementation());
+        });
 
-        // fetch results from SOLR
-        solrClient.get(queryparams, reply);
+
+
     },
 };
