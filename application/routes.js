@@ -12,8 +12,23 @@ module.exports = function(server) {
     // get query results from SOLR
     server.route({
       method: 'GET',
-      path: '/{queryparams}',
+      path: '/get/{queryparams}',
       handler: handlers.getResults,
+      config: {
+        validate: {
+          params: {
+            queryparams: Joi.string()
+          },
+        },
+        tags: ['api'],
+        description: 'Get SOLR search results'
+      }
+    });
+
+    server.route({
+      method: 'GET',
+      path: '/delete',
+      handler: handlers.delete,
       config: {
         validate: {
           params: {

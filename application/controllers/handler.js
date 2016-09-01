@@ -28,4 +28,14 @@ module.exports = {
 
 
     },
+    delete: function(request, reply){
+
+
+            solrClient.delete();
+
+                reply(boom.badImplementation());
+
+
+
+    },
 };

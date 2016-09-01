@@ -11,7 +11,18 @@ module.exports = {
             var client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
 
             // define query
-            var query = client.createQuery().q(params.q);
+            var query = client.createQuery();
+
+            var q = params.q;
+            if(params.hasOwnProperty('fields') && params.fields){
+                if(params.q != '*:*'){
+                    q = params.fields + ':*' + params.q + '*';
+                }
+
+                delete params.fields;
+            }
+            query.q(q);
+
             delete params.q;
 
             // define start
@@ -23,7 +34,7 @@ module.exports = {
             query.start(start);
 
             // define rows
-            var rows = config.ROWS;
+            var rows = 10;
             if(params.hasOwnProperty('rows') && params.rows){
                 rows = params.rows;
                 delete params.rows;

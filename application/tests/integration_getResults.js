@@ -28,7 +28,7 @@ describe('REST API', () => {
   // };
   let options = {
     method: 'GET',
-    url: '/q=*:*&entity=slide&start=0&rows=10',
+    url: '/get/q=*:*&entity=slide&start=0&rows=10',
     // payload: slide,
     headers: {
       'Content-Type': 'application/json'
