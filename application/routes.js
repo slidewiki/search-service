@@ -24,19 +24,4 @@ module.exports = function(server) {
         description: 'Get SOLR search results'
       }
     });
-
-    server.route({
-      method: 'GET',
-      path: '/delete',
-      handler: handlers.delete,
-      config: {
-        validate: {
-          params: {
-            queryparams: Joi.string()
-          },
-        },
-        tags: ['api'],
-        description: 'Get SOLR search results'
-      }
-    });
 };

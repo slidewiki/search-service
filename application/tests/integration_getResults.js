@@ -44,8 +44,8 @@ describe('REST API', () => {
         let payload = JSON.parse(response.payload);
         payload.should.be.an('object').and.contain.keys('response', 'responseHeader');
         payload.responseHeader.params.should.be.an('object').and.contain.keys('q', 'fq', 'start', 'rows');
-        for(var i in payload.response.docs){
-            payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');
+        for(let i in payload.response.docs){
+          payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');
         }
         done();
       });

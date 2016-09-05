@@ -10,32 +10,22 @@ const boom = require('boom'), //Boom gives us some predefined http codes and pro
 
 module.exports = {
 
-    // Get query results from SOLR or return INTERNAL_SERVER_ERROR
-    getResults: function(request, reply){
+  // Get query results from SOLR or return INTERNAL_SERVER_ERROR
+  getResults: function(request, reply){
 
-        // parse query params
-        helper.parse(request.params.queryparams).then( (queryparams) => {
-            // fetch results from SOLR
-            solrClient.get(queryparams).then( (results) => {
-                reply(results);
-            }).catch( (error) => {
-                reply(boom.badImplementation());
-            });
-        }).catch( (error) => {
-            reply(boom.badImplementation());
-        });
-
-
-
-    },
-    delete: function(request, reply){
-
-
-            solrClient.delete();
-
-                reply(boom.badImplementation());
+    // parse query params
+    helper.parse(request.params.queryparams).then( (queryparams) => {
+      // fetch results from SOLR
+      solrClient.get(queryparams).then( (results) => {
+        reply(results);
+      }).catch( (error) => {
+        reply(boom.badImplementation());
+      });
+    }).catch( (error) => {
+      reply(boom.badImplementation());
+    });
 
 
 
-    },
+  },
 };
