@@ -24,8 +24,5 @@ module.exports = {
     }).catch( (error) => {
       reply(boom.badImplementation());
     });
-
-
-
-  },
+  }
 };

@@ -25,7 +25,7 @@ if (!co.isEmpty(process.env.SOLR_PORT)){
   // console.log('Using port ' + port + ' as solr port.');
 }
 
-let core = 'swcore';
+let core = 'swTest';
 if (!co.isEmpty(process.env.SOLR_CORE)){
   core = process.env.SOLR_CORE;
   // console.log('Using core ' + core + ' as solr core.');
@@ -37,12 +37,47 @@ if (!co.isEmpty(process.env.SOLR_PATH)){
   // console.log('Using path ' + path + ' as solr path.');
 }
 
-const solrPath =
+let deckserviceURI = 'http://localhost:3050';
+if (!co.isEmpty(process.env.DECKSERVICE)){
+  path = process.env.DECKSERVICE;
+}
+
+let userserviceURI = 'http://userservice.manfredfris.ch';
+if (!co.isEmpty(process.env.USERSERVICE)){
+  path = process.env.USERSERVICE;
+}
+
+
+let mongoHost = 'localhost';
+// const fs = require('fs');
+const lines = fs.readFileSync('/etc/hosts').toString().split('\n');
+for (let i in lines) {
+  if (lines[i].includes('mongodb')) {
+    const entrys = lines[i].split(' ');
+    mongoHost = entrys[entrys.length - 1];
+    console.log('Found mongodb host. Using ' + host + ' as database host.');
+  }
+}
+
+let mongoPort = 27017;
+if (!co.isEmpty(process.env.DATABASE_PORT)){
+  path = process.env.DATABASE_PORT;
+}
+
 module.exports = {
     solrConfig: {
         HOST: host,
         PORT: port,
         CORE: core,
         PATH: path,
+    },
+    microservices: {
+      deckserviceURI: deckserviceURI,
+      userserviceURI: userserviceURI
+    },
+    mongoConfig:{
+      HOST: mongoHost,
+      PORT: mongoPort,
+      SLIDEWIKIDATABASE: 'slidewiki'
     }
 };

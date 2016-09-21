@@ -7,12 +7,13 @@ This application demonstrates a service which returns previously inserted data f
 
 //This is our webserver framework (instead of express)
 const hapi = require('hapi'),
-  co = require('./common');
+  co = require('./common'),
+  mongoListener = require('./mongoListener');
 
 //Initiate the webserver with standard or given port
 const server = new hapi.Server({ connections: {routes: {validate: { options: {convert : false}}}}});
 
-let port = (!co.isEmpty(process.env.APPLICATION_PORT)) ? process.env.APPLICATION_PORT : 3050;
+let port = (!co.isEmpty(process.env.APPLICATION_PORT)) ? process.env.APPLICATION_PORT : 4000;
 server.connection({
   port: port
 });
@@ -56,6 +57,9 @@ let plugins = [
     }
   }
 ];
+
+// start listening to mongo changes
+mongoListener.listen();
 
 //Register plugins and start webserver
 server.register(plugins, (err) => {
