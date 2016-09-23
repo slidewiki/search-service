@@ -37,14 +37,14 @@ if (!co.isEmpty(process.env.SOLR_PATH)){
   // console.log('Using path ' + path + ' as solr path.');
 }
 
-let deckserviceURI = 'http://localhost:3050';
+let deckserviceURI = 'http://deckservice.manfredfris.ch';
 if (!co.isEmpty(process.env.DECKSERVICE)){
-  path = process.env.DECKSERVICE;
+  deckserviceURI = process.env.DECKSERVICE;
 }
 
 let userserviceURI = 'http://userservice.manfredfris.ch';
 if (!co.isEmpty(process.env.USERSERVICE)){
-  path = process.env.USERSERVICE;
+  userserviceURI = process.env.USERSERVICE;
 }
 
 
@@ -61,7 +61,7 @@ for (let i in lines) {
 
 let mongoPort = 27017;
 if (!co.isEmpty(process.env.DATABASE_PORT)){
-  path = process.env.DATABASE_PORT;
+  mongoPort = process.env.DATABASE_PORT;
 }
 
 module.exports = {
