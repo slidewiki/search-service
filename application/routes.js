@@ -24,4 +24,19 @@ module.exports = function(server) {
         description: 'Get SOLR search results'
       }
     });
+
+    // server.route({
+    //   method: 'POST',
+    //   path: '/index',
+    //   handler: handlers.indexAll,
+    //   config: {
+    //     validate: {
+    //       params: {
+    //         queryparams: Joi.string()
+    //       },
+    //     },
+    //     tags: ['api'],
+    //     description: 'Index all data in DB'
+    //   }
+    // });
 };

@@ -46,7 +46,7 @@ module.exports = {
           helper.newDeck(event.data);
           break;
         case 'update':
-          // let newDoc = helper.updateDeck(event);
+          helper.updateDeck(event);
           // console.log("update decks " + JSON.stringify(newDoc));
           // solr.addDocs(newDoc).then( (result) => solr.commit() );
           break;

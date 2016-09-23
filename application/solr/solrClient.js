@@ -11,9 +11,9 @@ module.exports = {
     let promise = new Promise( (resolve, reject) => {
 
       let solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE  + '/query';
-      let rootQ = '*:*';
+      let rootQ = '';
       let rootFQ = '';
-      let childQ = '*:*';
+      let childQ = '';
       let childFQ = '';
       let queryString = '';
 
@@ -25,18 +25,32 @@ module.exports = {
           rootQ = 'description:' + params.q;
         }
         else{  //else query child docs
-          childQ = params.fields + ':' + params.q;
+          childQ = params.fields + ':*' + params.q + '*';
         }
+      }
+      else{
+        childQ = params.q;
       }
 
       // filter root docs for language
       if(params.language){
         rootFQ += 'language:*' + params.language + '*';
       }
-      // filter root docs for tags
+      // filter child docs for tags
       if(params.tags){
-        if(rootFQ)  rootFQ += ' AND ';
-        rootFQ += 'tags:*' + params.tags + '*';
+        if(childFQ)  childFQ += ' AND ';
+        childFQ += 'tags:*' + params.tags + '*';
+
+        if(childQ)  childQ += ' AND ';
+        childQ += 'tags:*' + params.tags + '*';
+      }
+
+      if(params.revisions === 'false'){
+        if(childFQ)  childFQ += ' AND ';
+        childFQ += 'active:true';
+
+        if(childQ)  childQ += ' AND ';
+        childQ += 'active:true';
       }
       // filter root docs for entities
       if(params.entity){
@@ -47,16 +61,47 @@ module.exports = {
         if(rootFQ) rootFQ += ' AND ';
         rootFQ += 'user:"' + params.user + '"';
       }
-      if(params.hasOwnProperty('fields') || params.q === '*:*'){
+      if(params.license){
+        if(childFQ)  childFQ += ' AND ';
+        childFQ += 'license:"' + params.license + '"';
+
+        if(childQ)  childQ += ' AND ';
+        childQ += 'license:"' + params.license + '"';
+      }
+
+      if(!rootQ)  rootQ = '*:*';
+      if(!childQ) childQ = '*:*';
+
+      // if(params.hasOwnProperty('fields') || params.q === '*:*'){
+      console.log('1');
+      // basic query
+      queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
+        ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
+        '&indent=on&q=' + rootQ + ' AND {!join from=solr_parent_id to=solr_id}' + childQ +'&rows=50&wt=json';
+
+      // variation if only child query was given
+      if(rootQ === '*:*' && childQ !== ''){
+        console.log('2');
+
         queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
           ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
-          '&indent=on&q=' + rootQ + ' AND {!join from=solr_parent_id to=solr_id}' + childQ +'&rows=20&wt=json';
+          '&indent=on&q={!join from=solr_parent_id to=solr_id}' + childQ +'&rows=50&wt=json';
       }
-      else{
-        queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' +
-          params.q + 'AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq=' +
-          '&indent=on&q=('+ params.q +' AND (kind:slide OR kind:deck)) OR {!join from=solr_parent_id to=solr_id}'+ params.q+'&rows=20&wt=json';
-      }
+      // }
+      // // search all fields both in root and child docs
+      // else{
+      //   console.log('3');
+      //   // let q = '*' + params.q + '*';
+      //   let q = params.q;
+      //   childQ = params.q;
+      //   if(params.tags){
+      //     childQ += ' OR tags:' + params.tags;
+      //   }
+      //   queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' +
+      //     ' {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq=' +
+      //     '&indent=on&q=('+ q +' OR {!join from=solr_parent_id to=solr_id}'+ childQ + ')' +
+      //     ' AND (kind:slide OR kind:deck)&rows=50&wt=json';
+      // }
 
       let requestUri = 'http://' + solrUri + queryString;
       console.log(requestUri);

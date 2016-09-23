@@ -33,84 +33,54 @@ module.exports = {
     });
     return promise;
   },
+  stripHTML(htmlString){
+    return htmlString.replace(/<\/?[^>]+(>|$)/g, '').replace(/(\r\n|\n|\r)/gm, '');
+  },
 
   newSlide(slideDbObj){
-    let newDocs = [];
 
-    // form root doc
-    let rootDoc = {};
-    rootDoc.solr_id = 'slide_' + slideDbObj._id;
-    rootDoc._id = slideDbObj._id;
-    rootDoc.user = slideDbObj.user;
-    rootDoc.kind = slideDbObj.kind;
-    rootDoc.deck = slideDbObj.deck;
-    rootDoc.timestamp = slideDbObj.timestamp;
-    rootDoc.language = slideDbObj.language;
-    newDocs.push(rootDoc);
+    microservices.getUsername(slideDbObj.user).then( (username) => {
+      // form root doc
+      let rootDoc = {};
+      rootDoc.solr_id = 'slide_' + slideDbObj._id;
+      rootDoc._id = slideDbObj._id;
+      rootDoc.user = username;
+      rootDoc.kind = slideDbObj.kind;
+      rootDoc.deck = slideDbObj.deck;
+      rootDoc.timestamp = slideDbObj.timestamp;
+      rootDoc.language = slideDbObj.language;
+      solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
+    });
 
     // form child docs
     for(let i=0; i<slideDbObj.revisions.length; i++){
-      let rev = slideDbObj.revisions[i];
-      let childDoc = {};
-
-      childDoc.solr_id = 'slide_revision_' + slideDbObj._id + '-' + rev.id;
-      childDoc.solr_parent_id = 'slide_' + slideDbObj._id;
-      childDoc.id = rev.id;
-      childDoc.parent_id = slideDbObj._id;
-      childDoc.kind = 'slide_revision';
-      childDoc.timestamp = rev.timestamp;
-      childDoc.user = rev.user;
-      childDoc.license = rev.license;
-      childDoc.title = rev.title;
-      childDoc.content = rev.content;
-      childDoc.speakernotes = rev.speakernotes;
-      childDoc.parent_deck = rev.usage[0];
-      childDoc.active = true;
-
-      newDocs.push(childDoc);
+      this.newSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
     }
-
-    solrClient.addDocs(newDocs).then( (result) => solrClient.commit() );
   },
 
   newDeck(deckDbObj){
-    let newDocs = [];
 
     // form root doc
-    let rootDoc = {};
-    rootDoc.solr_id = 'deck_' + deckDbObj._id;
-    rootDoc._id = deckDbObj._id;
-    rootDoc.user = deckDbObj.user;
-    rootDoc.kind = deckDbObj.kind;
-    // rootDoc.deck = slideDbObj.deck;
-    rootDoc.timestamp = deckDbObj.timestamp;
-    rootDoc.language = deckDbObj.language;
-    rootDoc.description = deckDbObj.description;
-    // rootDoc.translation = deckDbObj.translation;
-    rootDoc.lastUpdate = deckDbObj.lastUpdate;
-    rootDoc.tags = deckDbObj.tags;
-    newDocs.push(rootDoc);
+    microservices.getUsername(deckDbObj.user).then( (username) => {
+      let rootDoc = {};
+      rootDoc.solr_id = 'deck_' + deckDbObj._id;
+      rootDoc._id = deckDbObj._id;
+      rootDoc.user = username;
+      rootDoc.kind = deckDbObj.kind;
+      // rootDoc.deck = slideDbObj.deck;
+      rootDoc.timestamp = deckDbObj.timestamp;
+      rootDoc.language = deckDbObj.language;
+      rootDoc.description = deckDbObj.description;
+      // rootDoc.translation = deckDbObj.translation;
+      rootDoc.lastUpdate = deckDbObj.lastUpdate;
+      // rootDoc.tags = deckDbObj.tags;
+      solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
+    });
 
     // form child docs
     for(let i=0; i<deckDbObj.revisions.length; i++){
-      let rev = deckDbObj.revisions[i];
-      let childDoc = {};
-
-      childDoc.solr_id = 'deck_revision_' + deckDbObj._id + '-' + rev.id;
-      childDoc.solr_parent_id = 'deck_' + deckDbObj._id;
-      childDoc.id = rev.id;
-      childDoc.parent_id = deckDbObj._id;
-      childDoc.kind = 'deck_revision';
-      childDoc.timestamp = rev.timestamp;
-      childDoc.user = rev.user;
-      childDoc.license = rev.license;
-      childDoc.title = rev.title;
-      childDoc.active = true;
-
-      newDocs.push(childDoc);
+      this.newDeckRevision(deckDbObj._id, deckDbObj.active, deckDbObj.revisions[i]);
     }
-
-    solrClient.addDocs(newDocs).then( (result) => solrClient.commit() );
   },
 
   updateSlide(slideUpdateObj){
@@ -119,20 +89,22 @@ module.exports = {
       let updateObj = {};
       for(let prop in slideUpdateObj.data.$set){
         if(prop.indexOf('revisions') >= 0){
-          let revision_index = prop.split('.')[1];
-          microservices.getFromDeckService('slide', slideUpdateObj.targetId).then( (slide) => {
-            let revision_id = slide.revisions[revision_index].id;
-            solrClient.getById('slide_revision_' + slideUpdateObj.targetId + '-' + revision_id).then( (res) => {
-              // update existing slide revision
-              if(res.numFound > 0){
-                this.updateSlideRevision(slideUpdateObj.targetId, revision_id, slideUpdateObj.data.$set[prop]);
+          for(let i in slideUpdateObj.data.$set.revisions){
+            let rev = slideUpdateObj.data.$set.revisions[i];
+            solrClient.getById('slide_revision_' + slideUpdateObj.targetId + '-' + rev.id).then( (result) => {
+                // update existing slide revision
+              if(result.numFound > 0){
+                  // console.log('uparxei hdh ' + rev.id);
+                this.updateSlideRevision(slideUpdateObj.targetId, rev);
               }
               // new slide revision
               else{
-                this.newSlideRevision(slideUpdateObj.targetId, slideUpdateObj.data.$set[prop]);
+                // console.log('neo rev ' + rev.id);
+                this.newSlideRevision(slideUpdateObj.targetId, rev);
               }
             });
-          });
+            // console.log('edw ' + JSON.stringify(rev));
+          }
         }
         else{
           updateObj[prop] = {'set': deckObj.data.$set[prop]};
@@ -147,60 +119,63 @@ module.exports = {
       this.newSlide(slideUpdateObj.data);
     }
 
-    // let revKeyName = Object.keys(slideUpdateObj.$set)[0];
-    // let rev = slideUpdateObj.$set[revKeyName];
-    // let newDoc = {};
-    //
-    // newDoc.solr_id = 'slide_revision_' + parent_id + '-' + rev.id;
-    // newDoc.solr_parent_id = 'slide_' + parent_id;
-    // newDoc.db_id = rev.id;
-    // newDoc.parent_id = parent_id;
-    //
-    // newDoc.kind = 'slide_revision';
-    // newDoc.timestamp = rev.timestamp;
-    // newDoc.user = rev.user;
-    // newDoc.license = rev.license;
-    // newDoc.title = rev.title;
-    // newDoc.content = rev.content;
-    // newDoc.speakernotes = rev.speakernotes;
-    //
-    // return newDoc;
+  },
+  newDeckRevision(parent_id, active, rev){
+    microservices.getUsername(rev.user).then( (username) => {
+      let newDoc = {};
+
+      newDoc.solr_id = 'deck_revision_' + parent_id + '-' + rev.id;
+      newDoc.solr_parent_id = 'deck_' + parent_id;
+      newDoc.id = rev.id;
+      newDoc.parent_id = parent_id;
+      newDoc.kind = 'deck_revision';
+      newDoc.timestamp = rev.timestamp;
+      newDoc.user = username;
+      newDoc.license = rev.license;
+      newDoc.tags = rev.tags;
+      newDoc.title = rev.title;
+      newDoc.active = ((rev.id === active) || (rev.usage.length > 0)) ? true : false;
+
+      solrClient.addDocs(newDoc).then( (result) => solrClient.commit() );
+    });
   },
   newSlideRevision(parent_id, rev){
-    // console.log('edw ' + parent_id + " " + JSON.stringify(slideRevisionObj));
-    let newDoc = {};
+    console.log('edw new');
+    microservices.getUsername(rev.user).then( (username) => {
+      let newDoc = {};
 
-    newDoc.solr_id = 'slide_revision_' + parent_id + '-' + rev.id;
-    newDoc.solr_parent_id = 'slide_' + parent_id;
-    newDoc.id = rev.id;
-    newDoc.parent_id = parent_id;
-    newDoc.kind = 'slide_revision';
-    newDoc.timestamp = rev.timestamp;
-    newDoc.user = rev.user;
-    newDoc.license = rev.license;
-    newDoc.title = rev.title;
-    newDoc.content = rev.content;
-    newDoc.speakernotes = rev.speakernotes;
-    newDoc.parent_deck = rev.usage[0];
-    newDoc.active = true;
+      newDoc.solr_id = 'slide_revision_' + parent_id + '-' + rev.id;
+      newDoc.solr_parent_id = 'slide_' + parent_id;
+      newDoc.id = rev.id;
+      newDoc.parent_id = parent_id;
+      newDoc.kind = 'slide_revision';
+      newDoc.timestamp = rev.timestamp;
+      newDoc.user = username;
+      newDoc.license = rev.license;
+      newDoc.title = (rev.title) ? this.stripHTML(rev.title) : '';
+      newDoc.content = (rev.content) ? this.stripHTML(rev.content) : '';
+      newDoc.speakernotes = (rev.speakernotes) ? this.stripHTML(rev.speakernotes) : '';
+      newDoc.parent_deck = (rev.usage.length === 0) ? '' : rev.usage[0].id + '-' + rev.usage[0].revision;
+      newDoc.active = (rev.usage.length === 0) ? false : true;
+      console.log('new slide revision ' + JSON.stringify(newDoc));
+      solrClient.addDocs(newDoc).then( (result) => solrClient.commit() );
+    });
 
-    solrClient.addDocs(newDoc).then( (result) => solrClient.commit() );
   },
-  updateSlideRevision(parent_id, revision_id, rev){
-
+  updateSlideRevision(parent_id, rev){
+    // only usage can change in slide revisions
+    let active = (rev.usage.length === 0) ? false : true;
+    let updateObj = {
+      'solr_id': 'slide_revision_' + parent_id + '-' + rev.id,
+      'active': { 'set': active }
+    };
+    solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
   },
   updateDeck(deckObj){
-    // order(2);
     // update specified fields
-    if(deckObj.data.hasOwnProperty('$set')){
-      let updateObj = {'solr_id': 'deck_' + deckObj.targetId};
-      for(let prop in deckObj.data.$set){
-        updateObj[prop] = {'set': deckObj.data.$set[prop]};
-      }
-      return updateObj;
+    if(!deckObj.data.hasOwnProperty('$set')){
+      this.newDeck(deckObj.data);
     }
-    else{   //whole deck was sent as an update
-      return this.newDeck(deckObj.data);
-    }
+
   }
 };
