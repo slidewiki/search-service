@@ -24,5 +24,14 @@ module.exports = {
     }).catch( (error) => {
       reply(boom.badImplementation());
     });
+  },
+
+  // index all objects from DB to SOLR
+  indexAll: function(){
+    helper.indexAll().then( (res) => {
+      reply(res);
+    }).catch( (err) => {
+      reply(boom.badImplementation());
+    });
   }
 };

@@ -2,7 +2,8 @@
 const request = require('request'),
   solrClient = require('./solrClient'),
   co = require('../common'),
-  microservices = require('../microservices/microservicesConnection');
+  microservices = require('../microservices/microservicesConnection'),
+  db = require('../database/databaseConnection');
 
 module.exports = {
 
@@ -35,6 +36,27 @@ module.exports = {
   },
   stripHTML(htmlString){
     return htmlString.replace(/<\/?[^>]+(>|$)/g, '').replace(/(\r\n|\n|\r)/gm, '');
+  },
+  indexAll(){
+    let promise = new Promise( (resolve, reject) => {
+      // index all decks from db
+      db.getAllFromCollection('decks').then( (decks) => {
+        // console.log(JSON.stringify(decks.length));
+        for(let i=0; i<decks.length; i++){
+          this.newDeck(decks[i]);
+        }
+      });
+
+      // index all slides from db
+      db.getAllFromCollection('slides').then( (slides) => {
+        // console.log(JSON.stringify(decks.length));
+        for(let i=0; i<slides.length; i++){
+          this.newSlide(slides[i]);
+        }
+      });
+      resolve(200);
+    });
+    return promise;
   },
 
   newSlide(slideDbObj){
@@ -140,7 +162,6 @@ module.exports = {
     });
   },
   newSlideRevision(parent_id, rev){
-    console.log('edw new');
     microservices.getUsername(rev.user).then( (username) => {
       let newDoc = {};
 
@@ -157,7 +178,7 @@ module.exports = {
       newDoc.speakernotes = (rev.speakernotes) ? this.stripHTML(rev.speakernotes) : '';
       newDoc.parent_deck = (rev.usage.length === 0) ? '' : rev.usage[0].id + '-' + rev.usage[0].revision;
       newDoc.active = (rev.usage.length === 0) ? false : true;
-      console.log('new slide revision ' + JSON.stringify(newDoc));
+      // console.log('new slide revision ' + JSON.stringify(newDoc));
       solrClient.addDocs(newDoc).then( (result) => solrClient.commit() );
     });
 

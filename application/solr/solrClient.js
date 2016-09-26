@@ -73,7 +73,7 @@ module.exports = {
       if(!childQ) childQ = '*:*';
 
       // if(params.hasOwnProperty('fields') || params.q === '*:*'){
-      console.log('1');
+      // console.log('1');
       // basic query
       queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
         ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
@@ -81,7 +81,7 @@ module.exports = {
 
       // variation if only child query was given
       if(rootQ === '*:*' && childQ !== ''){
-        console.log('2');
+        // console.log('2');
 
         queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
           ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
@@ -134,7 +134,7 @@ module.exports = {
   addDocs: function(slideObj){
     let promise = new Promise( (resolve, reject) => {
 
-      let client = solr.createClient(config.HOST, config.PORT, 'swTest', config.PATH);
+      let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
 
       client.add(slideObj, function(err, obj){
         if(err){
@@ -150,13 +150,13 @@ module.exports = {
   },
 
   commit: function(){
-    let client = solr.createClient(config.HOST, config.PORT, 'swTest', config.PATH);
+    let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
     client.commit();
   },
 
   getById: function(id){
     let promise = new Promise( (resolve, reject) => {
-      let client = solr.createClient(config.HOST, config.PORT, 'swTest', config.PATH);
+      let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
       var query = client.createQuery().q('solr_id:' + id );
       client.search(query,function(err,obj){
         if(err){

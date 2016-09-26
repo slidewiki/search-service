@@ -25,18 +25,18 @@ module.exports = function(server) {
       }
     });
 
-    // server.route({
-    //   method: 'POST',
-    //   path: '/index',
-    //   handler: handlers.indexAll,
-    //   config: {
-    //     validate: {
-    //       params: {
-    //         queryparams: Joi.string()
-    //       },
-    //     },
-    //     tags: ['api'],
-    //     description: 'Index all data in DB'
-    //   }
-    // });
+    // index all data from db
+    server.route({
+      method: 'GET',
+      path: '/index',
+      handler: handlers.indexAll,
+      config: {
+        validate: {
+          params: {
+          },
+        },
+        tags: ['api'],
+        description: 'Index all data from DB in SOLR'
+      }
+    });
 };
