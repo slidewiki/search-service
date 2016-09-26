@@ -37,14 +37,9 @@ if (!co.isEmpty(process.env.SOLR_PATH)){
   // console.log('Using path ' + path + ' as solr path.');
 }
 
-let deckserviceURI = 'http://deckservice.manfredfris.ch';
-if (!co.isEmpty(process.env.DECKSERVICE)){
-  deckserviceURI = process.env.DECKSERVICE;
-}
-
 let userserviceURI = 'http://userservice.manfredfris.ch';
-if (!co.isEmpty(process.env.USERSERVICE)){
-  userserviceURI = process.env.USERSERVICE;
+if (!co.isEmpty(process.env.SERVICE_URL_USER)){
+  userserviceURI = process.env.SERVICE_URL_USER;
 }
 
 
@@ -72,7 +67,6 @@ module.exports = {
         PATH: path,
     },
     microservices: {
-      deckserviceURI: deckserviceURI,
       userserviceURI: userserviceURI
     },
     mongoConfig:{
