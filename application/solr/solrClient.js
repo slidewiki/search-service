@@ -11,7 +11,6 @@ module.exports = {
     let promise = new Promise( (resolve, reject) => {
 
       let solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE  + '/query';
-      console.log('edwwwwwwww ' + solrUri);
       let rootQ = '';
       let rootFQ = '';
       let childQ = '';
@@ -63,11 +62,13 @@ module.exports = {
         rootFQ += 'user:"' + params.user + '"';
       }
       if(params.license){
-        if(childFQ)  childFQ += ' AND ';
-        childFQ += 'license:"' + params.license + '"';
-
-        if(childQ)  childQ += ' AND ';
-        childQ += 'license:"' + params.license + '"';
+        if(rootFQ) rootFQ += ' AND ';
+        rootFQ += 'license:"' + params.license + '"';
+        // if(childFQ)  childFQ += ' AND ';
+        // childFQ += 'license:"' + params.license + '"';
+        //
+        // if(childQ)  childQ += ' AND ';
+        // childQ += 'license:"' + params.license + '"';
       }
 
       if(!rootQ)  rootQ = '*:*';
