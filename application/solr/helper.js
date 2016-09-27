@@ -199,9 +199,16 @@ module.exports = {
   updateSlideRevision(parent_id, rev){
     // only usage can change in slide revisions
     let active = (rev.usage.length === 0) ? false : true;
+    let usage_arr = [];
+    for(let i in rev.usage){
+      usage_arr.push(rev.usage[i].id + '-' + rev.usage[i].revision);
+    }
+
+    // update doc
     let updateObj = {
       'solr_id': 'slide_revision_' + parent_id + '-' + rev.id,
-      'active': { 'set': active }
+      'active': { 'set': active },
+      'usage': usage_arr
     };
     solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
   },
@@ -209,6 +216,28 @@ module.exports = {
     // update specified fields
     if(!deckObj.data.hasOwnProperty('$set')){
       this.newDeck(deckObj.data);
+    }
+    else{
+      let updateObj = {};
+      for(let prop in deckObj.data.$set){
+        if(prop.indexOf('revisions') >= 0){
+          for(let i in deckObj.data.$set.revisions){
+            let rev = deckObj.data.$set.revisions[i];
+            this.newDeckRevision(deckObj.targetId, deckObj.data.$set.active, rev);
+          }
+        }
+        else{
+          if(updateObj[prop] !== 'active'){   //do not store active in root deck
+            updateObj[prop] = {'set': deckObj.data.$set[prop]};
+          }
+        }
+      }
+
+      // change made to root doc
+      if(!co.isEmpty(updateObj)){
+        updateObj.solr_id = 'deck_' + deckObj.targetId;
+        solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
+      }
     }
 
   }
