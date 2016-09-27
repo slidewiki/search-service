@@ -9,34 +9,34 @@ const Joi = require('joi'),
 
 module.exports = function(server) {
 
-    // get query results from SOLR
-    server.route({
-      method: 'GET',
-      path: '/get/{queryparams}',
-      handler: handlers.getResults,
-      config: {
-        validate: {
-          params: {
-            queryparams: Joi.string()
-          },
+  // get query results from SOLR
+  server.route({
+    method: 'GET',
+    path: '/get/{queryparams}',
+    handler: handlers.getResults,
+    config: {
+      validate: {
+        params: {
+          queryparams: Joi.string()
         },
-        tags: ['api'],
-        description: 'Get SOLR search results'
-      }
-    });
+      },
+      tags: ['api'],
+      description: 'Get SOLR search results'
+    }
+  });
 
-    // index all data from db
-    server.route({
-      method: 'GET',
-      path: '/index',
-      handler: handlers.indexAll,
-      config: {
-        validate: {
-          params: {
-          },
+  // index all data from db
+  server.route({
+    method: 'GET',
+    path: '/index',
+    handler: handlers.indexAll,
+    config: {
+      validate: {
+        params: {
         },
-        tags: ['api'],
-        description: 'Index all data from DB in SOLR'
-      }
-    });
+      },
+      tags: ['api'],
+      description: 'Index all data from DB in SOLR'
+    }
+  });
 };

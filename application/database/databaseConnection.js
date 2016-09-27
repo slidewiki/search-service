@@ -4,8 +4,7 @@ Controller for handling mongodb and the data model slide while providing CRUD'is
 
 'use strict';
 
-const helper = require('./helper'),
-  oid = require('mongodb').ObjectID;
+const helper = require('./helper');
 
 module.exports = {
   getAllFromCollection: function(collectionName) {
