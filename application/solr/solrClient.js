@@ -29,7 +29,7 @@ module.exports = {
         }
       }
       else{
-        childQ = params.q;
+        childQ = '*' + params.q + '*';
       }
 
       // filter root docs for language
