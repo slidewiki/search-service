@@ -2,7 +2,7 @@
 'use strict';
 
 //read solr URL from /etc/hosts
-let host = 'slidewiki.imis.athena-innovation.gr';
+let host = 'experimental.slidewiki.org';
 const fs = require('fs');
 try {
   const lines = fs.readFileSync('/etc/hosts').toString().split('\n');

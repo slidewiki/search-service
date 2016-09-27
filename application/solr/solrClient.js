@@ -11,6 +11,7 @@ module.exports = {
     let promise = new Promise( (resolve, reject) => {
 
       let solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE  + '/query';
+      console.log('edwwwwwwww ' + solrUri);
       let rootQ = '';
       let rootFQ = '';
       let childQ = '';
@@ -29,7 +30,7 @@ module.exports = {
         }
       }
       else{
-        childQ = '*' + params.q + '*';
+        childQ = (params.q === '*:*') ? params.q : ('*' + params.q + '*');
       }
 
       // filter root docs for language
