@@ -7,7 +7,7 @@ const MongoStream = require('mongo-trigger'),
 
 module.exports = {
   listen: function(){
-
+    console.log('Trying to initiate mongo listener...');
     // init data streams
     let slidesStream = new MongoStream({
       format: 'pretty',
