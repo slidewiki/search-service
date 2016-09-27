@@ -23,7 +23,7 @@ module.exports = {
 
     // watch slides collection
     let slideCollection = mongoConfig.SLIDEWIKIDATABASE + '.slides';
-    slidesStream.watch(slideCollection, function*(event) {
+    slidesStream.watch(slideCollection, function(event) {
       console.log('\nslide ' + JSON.stringify(event));
       switch(event.operation){
         case 'insert':
@@ -38,7 +38,7 @@ module.exports = {
 
     // watch decks collection
     let deckCollection = mongoConfig.SLIDEWIKIDATABASE + '.decks';
-    decksStream.watch(deckCollection, function*(event) {
+    decksStream.watch(deckCollection, function(event) {
       console.log('\ndeck ' + JSON.stringify(event));
 
       switch(event.operation){

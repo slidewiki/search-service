@@ -67,10 +67,12 @@ module.exports = {
       rootDoc.solr_id = 'slide_' + slideDbObj._id;
       rootDoc._id = slideDbObj._id;
       rootDoc.user = username;
-      rootDoc.kind = slideDbObj.kind;
-      rootDoc.deck = slideDbObj.deck;
+      rootDoc.kind = 'slide';
+      // rootDoc.deck = slideDbObj.deck;
       rootDoc.timestamp = slideDbObj.timestamp;
+      rootDoc.lastUpdate = slideDbObj.lastUpdate;
       rootDoc.language = slideDbObj.language;
+      rootDoc.license = slideDbObj.license;
       solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
     });
 
@@ -88,13 +90,14 @@ module.exports = {
       rootDoc.solr_id = 'deck_' + deckDbObj._id;
       rootDoc._id = deckDbObj._id;
       rootDoc.user = username;
-      rootDoc.kind = deckDbObj.kind;
+      rootDoc.kind = 'deck';
       // rootDoc.deck = slideDbObj.deck;
       rootDoc.timestamp = deckDbObj.timestamp;
       rootDoc.language = deckDbObj.language;
       rootDoc.description = deckDbObj.description;
       // rootDoc.translation = deckDbObj.translation;
       rootDoc.lastUpdate = deckDbObj.lastUpdate;
+      rootDoc.license = deckDbObj.license;
       // rootDoc.tags = deckDbObj.tags;
       solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
     });
@@ -129,12 +132,15 @@ module.exports = {
           }
         }
         else{
-          updateObj[prop] = {'set': deckObj.data.$set[prop]};
+          updateObj[prop] = {'set': slideUpdateObj.data.$set[prop]};
         }
 
       }
+
+      // changes in root slide were made
       if(!co.isEmpty(updateObj)){
-        updateObj.solr_id = 'deck_' + slideUpdateObj.targetId;
+        updateObj.solr_id = 'slide_' + slideUpdateObj.targetId;
+        solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
       }
     }
     else{
@@ -153,7 +159,7 @@ module.exports = {
       newDoc.kind = 'deck_revision';
       newDoc.timestamp = rev.timestamp;
       newDoc.user = username;
-      newDoc.license = rev.license;
+      // newDoc.license = rev.license;
       newDoc.tags = rev.tags;
       newDoc.title = rev.title;
       newDoc.active = ((rev.id === active) || (rev.usage.length > 0)) ? true : false;
@@ -171,13 +177,20 @@ module.exports = {
       newDoc.parent_id = parent_id;
       newDoc.kind = 'slide_revision';
       newDoc.timestamp = rev.timestamp;
+      newDoc.lastUpdate = rev.lastUpdate;
       newDoc.user = username;
-      newDoc.license = rev.license;
+      // newDoc.license = rev.license;
       newDoc.title = (rev.title) ? this.stripHTML(rev.title) : '';
       newDoc.content = (rev.content) ? this.stripHTML(rev.content) : '';
       newDoc.speakernotes = (rev.speakernotes) ? this.stripHTML(rev.speakernotes) : '';
       newDoc.parent_deck = (rev.usage.length === 0) ? '' : rev.usage[0].id + '-' + rev.usage[0].revision;
       newDoc.active = (rev.usage.length === 0) ? false : true;
+
+      let usage_arr = [];
+      for(let i in rev.usage){
+        usage_arr.push(rev.usage[i].id + '-' + rev.usage[i].revision);
+      }
+      newDoc.usage = usage_arr;
       // console.log('new slide revision ' + JSON.stringify(newDoc));
       solrClient.addDocs(newDoc).then( (result) => solrClient.commit() );
     });
@@ -186,9 +199,16 @@ module.exports = {
   updateSlideRevision(parent_id, rev){
     // only usage can change in slide revisions
     let active = (rev.usage.length === 0) ? false : true;
+    let usage_arr = [];
+    for(let i in rev.usage){
+      usage_arr.push(rev.usage[i].id + '-' + rev.usage[i].revision);
+    }
+
+    // update doc
     let updateObj = {
       'solr_id': 'slide_revision_' + parent_id + '-' + rev.id,
-      'active': { 'set': active }
+      'active': { 'set': active },
+      'usage': usage_arr
     };
     solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
   },
@@ -196,6 +216,28 @@ module.exports = {
     // update specified fields
     if(!deckObj.data.hasOwnProperty('$set')){
       this.newDeck(deckObj.data);
+    }
+    else{
+      let updateObj = {};
+      for(let prop in deckObj.data.$set){
+        if(prop.indexOf('revisions') >= 0){
+          for(let i in deckObj.data.$set.revisions){
+            let rev = deckObj.data.$set.revisions[i];
+            this.newDeckRevision(deckObj.targetId, deckObj.data.$set.active, rev);
+          }
+        }
+        else{
+          if(updateObj[prop] !== 'active'){   //do not store active in root deck
+            updateObj[prop] = {'set': deckObj.data.$set[prop]};
+          }
+        }
+      }
+
+      // change made to root doc
+      if(!co.isEmpty(updateObj)){
+        updateObj.solr_id = 'deck_' + deckObj.targetId;
+        solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
+      }
     }
 
   }
