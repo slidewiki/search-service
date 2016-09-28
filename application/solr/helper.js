@@ -78,7 +78,7 @@ module.exports = {
 
     // form child docs
     for(let i=0; i<slideDbObj.revisions.length; i++){
-      solrClient.getById('slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id).then( (res)=> {
+      solrClient.getById('slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id).then( (res) => {
         if(res.numFound > 0){
           this.updateSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
         }
