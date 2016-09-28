@@ -78,7 +78,14 @@ module.exports = {
 
     // form child docs
     for(let i=0; i<slideDbObj.revisions.length; i++){
-      this.newSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
+      solrClient.getById('slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id).then( (res)=> {
+        if(res.numFound > 0){
+          this.updateSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
+        }
+        else{
+          this.newSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
+        }
+      });
     }
   },
 
@@ -227,7 +234,7 @@ module.exports = {
           }
         }
         else{
-          if(updateObj[prop] !== 'active'){   //do not store active in root deck
+          if(prop === 'description' || prop === 'lastUpdate' || prop === 'license'){   //do not store active in root deck
             updateObj[prop] = {'set': deckObj.data.$set[prop]};
           }
         }
@@ -236,6 +243,7 @@ module.exports = {
       // change made to root doc
       if(!co.isEmpty(updateObj)){
         updateObj.solr_id = 'deck_' + deckObj.targetId;
+        console.log('edw ' + JSON.stringify(updateObj));
         solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
       }
     }
