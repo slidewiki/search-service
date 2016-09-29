@@ -58,7 +58,9 @@ module.exports = {
     });
     return promise;
   },
-
+  deleteAll(){
+    return solrClient.deleteAll();
+  },
   newSlide(slideDbObj){
 
     microservices.getUsername(slideDbObj.user).then( (username) => {

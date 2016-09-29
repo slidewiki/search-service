@@ -33,5 +33,14 @@ module.exports = {
     }).catch( (err) => {
       reply(boom.badImplementation());
     });
+  },
+
+  // delete all documents from SOLR
+  deleteAll: function(){
+    helper.deleteAll().then( (res) => {
+      reply(res);
+    }).catch( (err) => {
+      reply(boom.badImplementation());
+    });
   }
 };

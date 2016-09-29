@@ -22,14 +22,14 @@ module.exports = {
       if(params.hasOwnProperty('fields') && params.fields && params.q !== '*:*'){
         // query root docs for description
         if(params.fields === 'description'){
-          rootQ = 'description:' + params.q;
+          rootQ = 'description:\"' + params.q + '\"';
         }
         else{  //else query child docs
-          childQ = params.fields + ':*' + params.q + '*';
+          childQ = params.fields + ':\"' + params.q + '\"';
         }
       }
       else{
-        childQ = (params.q === '*:*') ? params.q : ('*' + params.q + '*');
+        childQ = '\"' + params.q + '\"';
       }
 
       // filter root docs for language
@@ -46,8 +46,8 @@ module.exports = {
       }
 
       if(params.revisions === 'false'){
-        if(childFQ)  childFQ += ' AND ';
-        childFQ += 'active:true';
+        // if(childFQ)  childFQ += ' AND ';
+        // childFQ += 'active:true';
 
         if(childQ)  childQ += ' AND ';
         childQ += 'active:true';
@@ -64,11 +64,6 @@ module.exports = {
       if(params.license){
         if(rootFQ) rootFQ += ' AND ';
         rootFQ += 'license:"' + params.license + '"';
-        // if(childFQ)  childFQ += ' AND ';
-        // childFQ += 'license:"' + params.license + '"';
-        //
-        // if(childQ)  childQ += ' AND ';
-        // childQ += 'license:"' + params.license + '"';
       }
 
       if(!rootQ)  rootQ = '*:*';
@@ -81,9 +76,9 @@ module.exports = {
         ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
         '&indent=on&q=' + rootQ + ' AND {!join from=solr_parent_id to=solr_id}' + childQ +'&rows=50&wt=json';
 
-      // variation if only child query was given
+      // if only child query was given
       if(rootQ === '*:*' && childQ !== ''){
-        // console.log('2');
+        console.log('2');
 
         queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
           ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
@@ -159,12 +154,35 @@ module.exports = {
   getById: function(id){
     let promise = new Promise( (resolve, reject) => {
       let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
-      var query = client.createQuery().q('solr_id:' + id );
+      let query = client.createQuery().q('solr_id:' + id );
       client.search(query,function(err,obj){
         if(err){
           reject(err);
         }else{
           resolve(obj.response);
+        }
+      });
+    });
+    return promise;
+  },
+
+  deleteAll: function(){
+    let promise = new Promise( (resolve, reject) => {
+      let solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE;
+      let requestUri = 'http://' + solrUri + '/update?stream.body=<delete><query>*:*</query></delete>&commit=true';
+
+      request({
+        uri: requestUri,
+        method: 'GET'
+      }, (err, response, body) => {
+        if(err){
+          reject(err);
+        }
+        else if(response.statusCode !== 200){
+          reject(response.statusCode);
+        }
+        else{
+          resolve('200');
         }
       });
     });

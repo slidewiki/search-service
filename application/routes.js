@@ -39,4 +39,19 @@ module.exports = function(server) {
       description: 'Index all data from DB in SOLR'
     }
   });
+
+  // index all data from db
+  server.route({
+    method: 'GET',
+    path: '/delete',
+    handler: handlers.deleteAll,
+    config: {
+      validate: {
+        params: {
+        },
+      },
+      tags: ['api'],
+      description: 'Delete all documents from SOLR'
+    }
+  });
 };
