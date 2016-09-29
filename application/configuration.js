@@ -37,7 +37,7 @@ if (!co.isEmpty(process.env.SOLR_PATH)){
   // console.log('Using path ' + path + ' as solr path.');
 }
 
-let userserviceURI = 'http://userservice.manfredfris.ch';
+let userserviceURI = 'http://userservice.experimental.slidewiki.org';
 if (!co.isEmpty(process.env.SERVICE_URL_USER)){
   userserviceURI = process.env.SERVICE_URL_USER;
 }
