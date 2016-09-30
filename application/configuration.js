@@ -20,8 +20,8 @@ try {
 //read solr port from ENV
 const co = require('./common');
 let port = 8983;
-if (!co.isEmpty(process.env.SOLR_PORT)){
-  port = process.env.SOLR_PORT;
+if (!co.isEmpty(process.env.SOLR_CONFIG_PORT)){
+  port = process.env.SOLR_CONFIG_PORT;
   // console.log('Using port ' + port + ' as solr port.');
 }
 
