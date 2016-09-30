@@ -70,33 +70,37 @@ module.exports = {
       if(!childQ) childQ = '*:*';
 
       // if(params.hasOwnProperty('fields') || params.q === '*:*'){
-      // console.log('1');
-      // basic query
+        // console.log('1');
+        // basic query
       queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
         ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
         '&indent=on&q=' + rootQ + ' AND {!join from=solr_parent_id to=solr_id}' + childQ +'&rows=50&wt=json';
 
       // if only child query was given
       if(rootQ === '*:*' && childQ !== ''){
-        console.log('2');
+        // console.log('2');
 
         queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
           ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
           '&indent=on&q={!join from=solr_parent_id to=solr_id}' + childQ +'&rows=50&wt=json';
       }
       // }
-      // // search all fields both in root and child docs
+      // search all fields both in root and child docs
       // else{
       //   console.log('3');
       //   // let q = '*' + params.q + '*';
-      //   let q = params.q;
-      //   childQ = params.q;
+      //   let q = childQ = '\"' + params.q + '\"';
+      //   if(params.revisions === 'false'){
+      //     childFQ += 'active:true';
+      //   }
+      //   // childQ = q;
       //   if(params.tags){
       //     childQ += ' OR tags:' + params.tags;
       //   }
-      //   queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' +
-      //     ' {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq=' +
-      //     '&indent=on&q=('+ q +' OR {!join from=solr_parent_id to=solr_id}'+ childQ + ')' +
+      //   queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
+      //     ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq=' +
+      //     '&indent=on&q=(('+ q +' AND {!join from=solr_parent_id to=solr_id}' + childFQ + ')' +
+      //     ' OR ({!join from=solr_parent_id to=solr_id}'+ q + ' AND ' + childFQ + '))' +
       //     ' AND (kind:slide OR kind:deck)&rows=50&wt=json';
       // }
 
@@ -116,7 +120,7 @@ module.exports = {
           reject(err);
         }
         else if(response.statusCode !== 200){
-          reject(response.statusCode);
+          reject(response);
         }
         else{
           solrResponse = JSON.parse(body);

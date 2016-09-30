@@ -19,9 +19,11 @@ module.exports = {
       solrClient.get(queryparams).then( (results) => {
         reply(results);
       }).catch( (error) => {
+        console.log(error);
         reply(boom.badImplementation());
       });
     }).catch( (error) => {
+      console.log(error);
       reply(boom.badImplementation());
     });
   },
