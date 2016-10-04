@@ -16,7 +16,7 @@ module.exports = {
       let childQ = '';
       let childFQ = '';
       let queryString = '';
-
+      params.q = encodeURIComponent(params.q);
 
       //search keywords in search field
       if(params.hasOwnProperty('fields') && params.fields && params.q !== '*:*'){
@@ -38,6 +38,7 @@ module.exports = {
       }
       // filter child docs for tags
       if(params.tags){
+        params.tags = encodeURIComponent(params.tags);
         if(childFQ)  childFQ += ' AND ';
         childFQ += 'tags:*' + params.tags + '*';
 
@@ -58,6 +59,7 @@ module.exports = {
         rootFQ += 'kind:' + params.entity;
       }
       if(params.user){
+        params.user = encodeURIComponent(params.user);
         if(rootFQ) rootFQ += ' AND ';
         rootFQ += 'user:"' + params.user + '"';
       }
@@ -70,8 +72,8 @@ module.exports = {
       if(!childQ) childQ = '*:*';
 
       // if(params.hasOwnProperty('fields') || params.q === '*:*'){
-        // console.log('1');
-        // basic query
+      console.log('1');
+      // basic query
       queryString = '?fq=' + rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + childQ +
         ' AND {!terms f=solr_parent_id v=$row.solr_id}&revisions.fq='+ childFQ +
         '&indent=on&q=' + rootQ + ' AND {!join from=solr_parent_id to=solr_id}' + childQ +'&rows=50&wt=json';
