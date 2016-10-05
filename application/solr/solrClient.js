@@ -88,7 +88,7 @@ module.exports = {
         // basic query
       let queryString = '?fq=' + solr_params.rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + solr_params.childQ +
           ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
-          '&q=' + solr_params.rootQ + '{!join from=solr_parent_id to=solr_id score=total}' +
+          '&q=' + solr_params.rootQ + '{!join from=solr_parent_id to=solr_id score=max}' +
           solr_params.childQ +'&rows=50&wt=json';
       // }
       // // search all fields both in root and child docs
