@@ -216,6 +216,7 @@ module.exports = {
     // update doc
     let updateObj = {
       'solr_id': 'slide_revision_' + parent_id + '-' + rev.id,
+      'title': { 'set': rev.title },
       'active': { 'set': active },
       'usage': usage_arr
     };
