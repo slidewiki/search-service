@@ -7,8 +7,9 @@ const solr = require('solr-client'),
 function getSolrParameters(params){
   let solr_params = {};
   let childQ = [];
+  let childFilters = [];
   let rootQ = [];
-  let rootFields = [];
+  let rootFilters = [];
 
   if(params.q){
     params.q = encodeURIComponent(escapeSpecialChars(params.q));
@@ -26,34 +27,35 @@ function getSolrParameters(params){
   }
 
   if(params.language){
-    rootFields.push('language:*' + params.language + '*');
+    rootFilters.push('language:*' + params.language + '*');
   }
 
   if(params.tags){
     params.tags = encodeURIComponent(escapeSpecialChars(params.tags));
-    childQ.push('tags:' + params.tags);
+    childFilters.push('tags:' + params.tags);
   }
 
   if(params.revisions === 'false'){
-    childQ.push('active:true');
+    childFilters.push('active:true');
   }
 
   if(params.entity){
-    rootFields.push('kind:' + params.entity);
+    rootFilters.push('kind:' + params.entity);
   }
 
   if(params.user){
     params.user = encodeURIComponent(escapeSpecialChars(params.user));
-    rootFields.push('user:' + params.user);
+    rootFilters.push('user:' + params.user);
   }
 
   if(params.license){
-    rootFields.push('license:\"' + params.license +'\"');
+    rootFilters.push('license:\"' + params.license +'\"');
   }
 
-  solr_params.rootQ = (rootQ.length > 0) ? rootQ.join(' AND ') + ' AND ' : '';
-  solr_params.childQ = (childQ.length > 0 ) ? childQ.join(' AND ') : '*:* ';
-  solr_params.rootFQ = (rootFields.length > 0) ? rootFields.join(' AND ') : '';
+  solr_params.rootQ = (rootQ.length > 0) ? rootQ.join(' AND ') : '';
+  solr_params.rootFQ = (rootFilters.length > 0) ? rootFilters.join(' AND ') : '';
+  solr_params.childQ = (childQ.length > 0 ) ? childQ.join(' AND ') : '*:*';
+  solr_params.childFQ = (childFilters.length > 0) ? childFilters.join(' AND ') : '';
 
   return solr_params;
 }
@@ -78,11 +80,19 @@ module.exports = {
 
       // if(params.hasOwnProperty('fields')){
       console.log('1');
-        // basic query
-      let queryString = '?fq=' + solr_params.rootFQ + '&fl=*,revisions:[subquery]&revisions.q=' + solr_params.childQ +
-          ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
-          '&q=' + solr_params.rootQ + '{!join from=solr_parent_id to=solr_id score=max}' +
-          solr_params.childQ +'&rows=50&wt=json';
+      let rootQ = (solr_params.rootQ !== '') ? solr_params.rootQ + ' AND ' : '';
+      let childQAndFQ = solr_params.childQ;
+      childQAndFQ += (solr_params.childFQ !== '') ? (' AND ' + solr_params.childFQ) : '';
+
+      // basic query
+      let queryString =
+        '?q=' + rootQ + '{!join from=solr_parent_id to=solr_id score=max v=\'' + childQAndFQ + '\'}' +
+        '&fq=' + solr_params.rootFQ +
+        '&fl=*,revisions:[subquery]' +
+        '&revisions.q=' + solr_params.childQ + ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
+        '&revisions.fq=' + solr_params.childFQ +
+        '&revisions.sort=id asc' + 
+        '&rows=50&wt=json';
       // }
       // // search all fields both in root and child docs
       // else{
