@@ -59,19 +59,12 @@ function getSolrParameters(params){
 }
 
 function escapeSpecialChars(s){
-  let term =  s.replace(/([\+\-!\(\)\{\}\[\]\~\*\?:\\])/g, function(match) {
+  return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, function(match) {
     return '\\' + match;
   })
   .replace(/&&/g, '\\&\\&')
-  .replace(/\|\|/g, '\\|\\|');
-
-  // if odd number of " then escape
-  if((term.match(/"/g)||[]).length % 2 !== 0){
-    term = term.replace(/"/g, function(match){
-      return '\\' + match;
-    });
-  }
-  return term;
+  .replace(/\|\|/g, '\\|\\|')
+  .replace(/'/g, '');
 }
 
 module.exports = {
