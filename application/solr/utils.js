@@ -1,3 +1,4 @@
+'use strict';
 
 function escapeSpecialChars(s){
   return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, function(match) {
