@@ -2,7 +2,7 @@
 
 const MongoStream = require('mongo-trigger'),
   //solr = require('./solr/solrClient'),
-  helper = require('../solr/helper'),
+  decks = require('../solr/objectCollections/decks'),
   mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
@@ -22,12 +22,10 @@ module.exports = {
 
       switch(event.operation){
         case 'insert':
-          helper.newDeck(event.data);
+          decks.newDeck(event.data);
           break;
         case 'update':
-          helper.updateDeck(event);
-          // console.log("update decks " + JSON.stringify(newDoc));
-          // solr.addDocs(newDoc).then( (result) => solr.commit() );
+          decks.updateDeck(event);
           break;
       }
     });

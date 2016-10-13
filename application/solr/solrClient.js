@@ -2,7 +2,7 @@
 
 const solr = require('solr-client'),
   config = require('../configuration').solrConfig,
-  utils = require('./utils'),
+  helper = require('./helper'),
   request = require('request');
 
 
@@ -13,8 +13,8 @@ module.exports = {
     let promise = new Promise( (resolve, reject) => {
 
       let solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE  + '/query';
-      let solr_params = utils.getSolrParameters(params);
 
+      let solr_params = helper.getSolrParameters(params);
       // if(params.hasOwnProperty('fields')){
       console.log('1');
       let rootQ = (solr_params.rootQ !== '') ? solr_params.rootQ + ' AND ' : '';
@@ -28,7 +28,7 @@ module.exports = {
         '&fl=*,revisions:[subquery]' +
         '&revisions.q=' + solr_params.childQ + ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
         '&revisions.fq=' + solr_params.childFQ +
-        '&revisions.sort=id asc' +
+        // '&revisions.sort=id asc' +
         '&rows=50&wt=json';
       // }
       // // search all fields both in root and child docs

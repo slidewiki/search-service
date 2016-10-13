@@ -2,7 +2,7 @@
 
 const MongoStream = require('mongo-trigger'),
   //solr = require('./solr/solrClient'),
-  helper = require('../solr/helper'),
+  slides = require('../solr/objectCollections/slides'),
   mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
@@ -19,13 +19,13 @@ module.exports = {
     let slideCollection = mongoConfig.SLIDEWIKIDATABASE + '.slides';
     slidesStream.watch(slideCollection, function(event) {
       console.log('\nslide ' + JSON.stringify(event));
-      
+
       switch(event.operation){
         case 'insert':
-          helper.newSlide(event.data);
+          slides.newSlide(event.data);
           break;
         case 'update':
-          helper.updateSlide(event);
+          slides.updateSlide(event);
           break;
 
       }
