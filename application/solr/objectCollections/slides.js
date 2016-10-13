@@ -18,7 +18,7 @@ module.exports = {
       // rootDoc.deck = slideDbObj.deck;
       rootDoc.timestamp = slideDbObj.timestamp;
       rootDoc.lastUpdate = slideDbObj.lastUpdate;
-      rootDoc.language = slideDbObj.language.toLowerCase();
+      rootDoc.language = slideDbObj.language;
       rootDoc.license = slideDbObj.license;
       solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
     });

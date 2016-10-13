@@ -125,6 +125,5 @@ module.exports = {
   },
   deleteAll(){
     return solrClient.deleteAll();
-  },
-
+  }
 };
