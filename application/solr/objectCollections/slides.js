@@ -3,10 +3,10 @@
 const solrClient = require('../solrClient'),
     microservices = require('../../microservices/microservicesConnection'),
     helper = require('../helper'),
-    co = require('../../common');;
+    co = require('../../common');
 
 module.exports = {
-    newSlide(slideDbObj){
+    newSlide: function(slideDbObj){
 
         microservices.getUsername(slideDbObj.user).then( (username) => {
             // form root doc
@@ -36,7 +36,7 @@ module.exports = {
         }
     },
 
-    updateSlide(slideUpdateObj){
+    updateSlide: function(slideUpdateObj){
 
         if(slideUpdateObj.data.hasOwnProperty('$set')){
             let updateObj = {};
@@ -73,7 +73,7 @@ module.exports = {
 
     },
 
-    newSlideRevision(parent_id, rev){
+    newSlideRevision: function(parent_id, rev){
         microservices.getUsername(rev.user).then( (username) => {
             let newDoc = {};
 
@@ -103,7 +103,7 @@ module.exports = {
 
     },
 
-    updateSlideRevision(parent_id, rev){
+    updateSlideRevision: function(parent_id, rev){
         // only usage can change in slide revisions
         let active = (rev.usage.length === 0) ? false : true;
         let usage_arr = [];

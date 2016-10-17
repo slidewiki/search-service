@@ -4,11 +4,9 @@ const solrClient = require('../solrClient'),
     microservices = require('../../microservices/microservicesConnection'),
     co = require('../../common');
 
-
-
 module.exports = {
-    newDeck(deckDbObj){
 
+    newDeck: function(deckDbObj){
         // form root doc
         microservices.getUsername(deckDbObj.user).then( (username) => {
             let rootDoc = {};
@@ -27,13 +25,13 @@ module.exports = {
             solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
         });
 
-            // form child docs
+        // form child docs
         for(let i=0; i<deckDbObj.revisions.length; i++){
             this.newDeckRevision(deckDbObj._id, deckDbObj.active, deckDbObj.revisions[i]);
         }
     },
 
-    newDeckRevision(parent_id, active, rev){
+    newDeckRevision: function(parent_id, active, rev){
         microservices.getUsername(rev.user).then( (username) => {
             let newDoc = {};
 
@@ -53,7 +51,7 @@ module.exports = {
         });
     },
 
-    updateDeck(deckObj){
+    updateDeck: function(deckObj){
         // update specified fields
         if(!deckObj.data.hasOwnProperty('$set')){
             this.newDeck(deckObj.data);

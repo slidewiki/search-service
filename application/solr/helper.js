@@ -1,10 +1,6 @@
 'use strict';
-const request = require('request'),
-    solrClient = require('./solrClient'),
-    co = require('../common'),
-    microservices = require('../microservices/microservicesConnection'),
-    db = require('../database/databaseConnection');
 
+const co = require('../common');
 
 function escapeSpecialChars(s){
     return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
@@ -100,31 +96,7 @@ module.exports = {
 
         return solr_params;
     },
-    stripHTML(htmlString){
+    stripHTML: function(htmlString){
         return htmlString.replace(/<\/?[^>]+(>|$)/g, '').replace(/(\r\n|\n|\r)/gm, '');
-    },
-    indexAll(){
-        let promise = new Promise( (resolve, reject) => {
-            // index all decks from db
-            db.getAllFromCollection('decks').then( (decks) => {
-                // console.log(JSON.stringify(decks.length));
-                for(let i=0; i<decks.length; i++){
-                    this.newDeck(decks[i]);
-                }
-            });
-
-            // index all slides from db
-            db.getAllFromCollection('slides').then( (slides) => {
-                // console.log(JSON.stringify(decks.length));
-                for(let i=0; i<slides.length; i++){
-                    this.newSlide(slides[i]);
-                }
-            });
-            resolve(200);
-        });
-        return promise;
-    },
-    deleteAll(){
-        return solrClient.deleteAll();
-    }
+    }    
 };

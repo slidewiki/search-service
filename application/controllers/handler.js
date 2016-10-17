@@ -6,7 +6,8 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     solrClient = require('../solr/solrClient'),
-    helper = require('../solr/helper');
+    helper = require('../solr/helper'),
+    initIndex = require('../solr/initIndex');
 
 module.exports = {
 
@@ -19,27 +20,31 @@ module.exports = {
             solrClient.get(queryparams).then( (results) => {
                 reply(results);
             }).catch( (error) => {
+                request.log('solrClient.get', error);
                 reply(boom.badImplementation());
             });
         }).catch( (error) => {
+            request.log('helper.parse', error);
             reply(boom.badImplementation());
         });
     },
 
     // index all objects from DB to SOLR
-    indexAll: function(){
-        helper.indexAll().then( (res) => {
+    indexAll: function(request, reply){
+        initIndex.indexAll().then( (res) => {
             reply(res);
-        }).catch( (err) => {
+        }).catch( (error) => {
+            request.log('initIndex.indexAll', error);
             reply(boom.badImplementation());
         });
     },
 
     // delete all documents from SOLR
-    deleteAll: function(){
-        helper.deleteAll().then( (res) => {
+    deleteAll: function(request, reply){
+        solrClient.deleteAll().then( (res) => {
             reply(res);
-        }).catch( (err) => {
+        }).catch( (error) => {
+            request.log('solrClient.deleteAll', error);
             reply(boom.badImplementation());
         });
     }

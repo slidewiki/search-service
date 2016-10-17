@@ -41,7 +41,7 @@ module.exports = {
 
 
             let requestUri = 'http://' + solrUri + queryString;
-            console.log(requestUri);
+            // console.log(requestUri);
             request({
                 uri: requestUri,
                 method: 'GET'
@@ -53,14 +53,14 @@ module.exports = {
                 let error = false;
 
                 if(err){
-                    reject(err);
+                    reject('in request. URI: ' + requestUri);
                 }
                 else if(response.statusCode !== 200){
-                    reject(response);
+                    reject('in response. URI: ' + requestUri);
                 }
                 else{
                     solrResponse = JSON.parse(body);
-                    console.log(solrResponse.response);
+                    // console.log(solrResponse.response);
                     resolve(solrResponse.response);
                 }
             });
@@ -116,13 +116,13 @@ module.exports = {
                 method: 'GET'
             }, (err, response, body) => {
                 if(err){
-                    reject(err);
+                    reject('in request. URI: ' + requestUri);
                 }
                 else if(response.statusCode !== 200){
-                    reject(response.statusCode);
+                    reject('in response. URI: ' + requestUri);
                 }
                 else{
-                    resolve('200');
+                    resolve('All documents are deleted from SOLR Index');
                 }
             });
         });

@@ -23,12 +23,12 @@ describe('solr client', () => {
 
     context('querying SOLR', () => {
         it('should reply with the results', (done) => {
-            // client.get(params).then( (res) => {
-            //   console.log('edw ' + JSON.stringify(params));
+            client.get(params).then( (res) => {
+                console.log('edw ' + JSON.stringify(params));
 
-            // res.should.be.an('object').and.contain.keys('numFound','start', 'docs');
-            done();
-            // });
+                res.should.be.an('object').and.contain.keys('numFound','start', 'docs');
+                done();
+            });
         });
     });
 });
