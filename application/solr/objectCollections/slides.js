@@ -25,11 +25,13 @@ module.exports = {
 
         // form child docs
         for(let i=0; i<slideDbObj.revisions.length; i++){
-            solrClient.getById('slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id).then( (res) => {
+            solrClient.query('solr_id:slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id).then( (res) => {
                 if(res.numFound > 0){
+                    // console.log('solr_id:slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id + ' is existing');
                     this.updateSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
                 }
                 else{
+                    // console.log('solr_id:slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id + ' is new');
                     this.newSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
                 }
             });
@@ -44,13 +46,15 @@ module.exports = {
                 if(prop.indexOf('revisions') >= 0){
                     for(let i in slideUpdateObj.data.$set.revisions){
                         let rev = slideUpdateObj.data.$set.revisions[i];
-                        solrClient.getById('slide_revision_' + slideUpdateObj.targetId + '-' + rev.id).then( (result) => {
+                        solrClient.query('solr_id:slide_revision_' + slideUpdateObj.targetId + '-' + rev.id).then( (result) => {
                             // update existing slide revision
                             if(result.numFound > 0){
+                                // console.log('solr_id:slide_revision_' + slideUpdateObj.targetId + '-' + rev.id + ' is existing');
                                 this.updateSlideRevision(slideUpdateObj.targetId, rev);
                             }
                             // new slide revision
                             else{
+                                // console.log('solr_id:slide_revision_' + slideUpdateObj.targetId + '-' + rev.id + ' is new');
                                 this.newSlideRevision(slideUpdateObj.targetId, rev);
                             }
                         });

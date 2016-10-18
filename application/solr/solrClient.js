@@ -41,7 +41,7 @@ module.exports = {
 
 
             let requestUri = 'http://' + solrUri + queryString;
-            // console.log(requestUri);
+            // console.log('query: ' + requestUri);
             request({
                 uri: requestUri,
                 method: 'GET'
@@ -60,12 +60,39 @@ module.exports = {
                 }
                 else{
                     solrResponse = JSON.parse(body);
-                    // console.log(solrResponse.response);
-                    resolve(solrResponse.response);
+
+                    // check if all results have at least one child
+                    // if not, fetch the active revision (needed for decks that match on root doc)
+                    this.checkResponse(solrResponse.response).then( (res) => {
+
+                        for(let i in res){
+                            solrResponse.response.docs[res[i].item].revisions = res[i];
+                        }
+                        resolve(solrResponse.response);
+                    }).catch( (error) => {
+                        reject('in checkResponse. solrResponse: ' + solrResponse);
+                    });
+                    // resolve(solrResponse.response);
                 }
             });
         });
         return promise;
+    },
+    checkResponse: function(response){
+        let promises = [];
+
+        for (let i in response.docs){
+            let curDoc = response.docs[i];
+
+            // if results has no children
+            if(curDoc.revisions.numFound === 0){
+
+                // fetch active child
+                let query = 'solr_parent_id:' + curDoc.solr_id + ' AND active:true';
+                promises.push(this.query(query, i));
+            }
+        }
+        return Promise.all(promises);
     },
 
     addDocs: function(slideObj){
@@ -91,14 +118,17 @@ module.exports = {
         client.commit();
     },
 
-    getById: function(id){
+    query: function(queryString, item){
         let promise = new Promise( (resolve, reject) => {
             let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
-            let query = client.createQuery().q('solr_id:' + id );
-            client.search(query,function(err,obj){
+            let query = client.createQuery().q(queryString);
+            client.search(query, function(err, obj){
                 if(err){
                     reject(err);
                 }else{
+                    if(item !== 'undefined'){
+                        obj.response.item = item;
+                    }
                     resolve(obj.response);
                 }
             });
