@@ -1,6 +1,7 @@
 'use strict';
 
-const co = require('../common');
+const co = require('../common'),
+    htmlToText = require('html-to-text');
 
 function escapeSpecialChars(s){
     return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
@@ -97,6 +98,6 @@ module.exports = {
         return solr_params;
     },
     stripHTML: function(htmlString){
-        return htmlString.replace(/<\/?[^>]+(>|$)/g, '').replace(/(\r\n|\n|\r)/gm, '');
-    }    
+        return htmlToText.fromString(htmlString);
+    }
 };
