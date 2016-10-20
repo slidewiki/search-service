@@ -7,7 +7,7 @@ const request = require('request'),
 module.exports = {
 
     getUsername: function(user_id){
-        let promise = new Promise( (resolve, reject) => {
+        let promise = new Promise( (resolve) => {
             request({
                 uri: microservicesConf.userserviceURI + '/user/' +  user_id,
                 method: 'GET'

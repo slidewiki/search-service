@@ -47,10 +47,7 @@ module.exports = {
                 method: 'GET'
             }, (err, response, body) => {
 
-                let numFound = 0;
-                let docs = {};
                 let solrResponse = {};
-                let error = false;
 
                 if(err){
                     reject('in request. URI: ' + requestUri);
@@ -100,7 +97,7 @@ module.exports = {
 
             let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
 
-            client.add(slideObj, function(err, obj){
+            client.add(slideObj, (err, obj) => {
                 if(err){
                     // console.log(err);
                     reject(err);
@@ -122,7 +119,7 @@ module.exports = {
         let promise = new Promise( (resolve, reject) => {
             let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
             let query = client.createQuery().q(queryString);
-            client.search(query, function(err, obj){
+            client.search(query, (err, obj) => {
                 if(err){
                     reject(err);
                 }else{
@@ -144,7 +141,7 @@ module.exports = {
             request({
                 uri: requestUri,
                 method: 'GET'
-            }, (err, response, body) => {
+            }, (err, response) => {
                 if(err){
                     reject('in request. URI: ' + requestUri);
                 }

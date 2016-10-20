@@ -1,7 +1,6 @@
 'use strict';
 
-const co = require('../common'),
-    htmlToText = require('html-to-text');
+const htmlToText = require('html-to-text');
 
 function escapeSpecialChars(s){
     return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
@@ -16,7 +15,7 @@ module.exports = {
 
     // parses query string into json params
     parse: function(qstr){
-        let promise = new Promise( (resolve, reject) => {
+        let promise = new Promise( (resolve) => {
             let query = {};
 
             if(qstr){

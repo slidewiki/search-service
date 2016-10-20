@@ -26,6 +26,8 @@ describe('solr client', () => {
             client.get(params).then( (res) => {
                 res.should.be.an('object').and.contain.keys('numFound','start', 'docs');
                 done();
+            }).catch( (err) => {
+                console.log(err);
             });
         });
     });

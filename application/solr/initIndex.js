@@ -15,6 +15,8 @@ module.exports = {
                     // console.log(JSON.stringify(dbDecks[i]));
                     decks.newDeck(dbDecks[i]);
                 }
+            }).catch( (err) => {
+                reject('in db.getAllFromCollection(decks).' + err);
             });
             db.getAllFromCollection('slides').then( (dbSlides) => {
                 // console.log(decks.length);
@@ -22,6 +24,8 @@ module.exports = {
                     // console.log(JSON.stringify(dbSlides[i]));
                     slides.newSlide(dbSlides[i]);
                 }
+            }).catch( (err) => {
+                reject('in db.getAllFromCollection(slides).' + err);
             });
             resolve('All DB documents are now indexed in SOLR');
         });

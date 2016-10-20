@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 const solrClient = require('../solrClient'),
     microservices = require('../../microservices/microservicesConnection'),
