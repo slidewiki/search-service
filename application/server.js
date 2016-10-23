@@ -9,7 +9,8 @@ This application demonstrates a service which returns previously inserted data f
 const hapi = require('hapi'),
   co = require('./common'),
   decksListener = require('./mongoListeners/decksListener'),
-  slidesListener = require('./mongoListeners/slidesListener');
+  slidesListener = require('./mongoListeners/slidesListener'),
+  usersListener = require('./mongoListeners/usersListener');
 
 //Initiate the webserver with standard or given port
 const server = new hapi.Server({ connections: {routes: {validate: { options: {convert : false}}}}});
@@ -62,6 +63,7 @@ let plugins = [
 // start listening to mongo changes
 decksListener.listen();
 slidesListener.listen();
+usersListener.listen();
 
 //Register plugins and start webserver
 server.register(plugins, (err) => {

@@ -1,7 +1,6 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    //solr = require('./solr/solrClient'),
     slides = require('../solr/objectCollections/slides'),
     mongoConfig = require('../configuration').mongoConfig;;
 
