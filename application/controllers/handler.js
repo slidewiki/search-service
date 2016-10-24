@@ -7,7 +7,8 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     solrClient = require('../solr/solrClient'),
     helper = require('../solr/helper'),
-    initIndex = require('../solr/initIndex');
+    initIndex = require('../solr/initIndex'),
+    searchResults = require('../solr/searchResults');
 
 module.exports = {
 
@@ -17,10 +18,10 @@ module.exports = {
         // parse query params
         helper.parse(request.params.queryparams).then( (queryparams) => {
             // fetch results from SOLR
-            solrClient.get(queryparams).then( (results) => {
+            searchResults.get(queryparams).then( (results) => {
                 reply(results);
             }).catch( (error) => {
-                request.log('solrClient.get', error);
+                request.log('searchResults.get', error);
                 reply(boom.badImplementation());
             });
         }).catch( (error) => {

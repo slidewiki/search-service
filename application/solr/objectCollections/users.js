@@ -18,8 +18,8 @@ module.exports = {
         rootDoc.organization = userDbObj.organization;
         rootDoc.kind = 'user';
 
-        console.log('new ' + JSON.stringify(rootDoc));
-        // solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
+        // console.log('new ' + JSON.stringify(rootDoc));
+        solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
     },
 
     update: function(userDbObj){
@@ -35,7 +35,7 @@ module.exports = {
                     prop === 'surname' ||
                     prop === 'forename' ||
                     prop === 'email' ||
-                    prop === 'organization'){   //do not store active in root deck
+                    prop === 'organization'){
 
                     updateObj[prop] = {'set': userDbObj.data.$set[prop]};
                 }
@@ -45,12 +45,11 @@ module.exports = {
             // change made to root doc
             if(!co.isEmpty(updateObj)){
                 updateObj.solr_id = 'user_' + userDbObj.targetId;
-                console.log('update ' + JSON.stringify(updateObj));
+                // console.log('update ' + JSON.stringify(updateObj));
 
-                // solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
+                solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
             }
         }
-
     }
 
 };
