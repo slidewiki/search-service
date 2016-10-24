@@ -2,13 +2,14 @@
 
 const db = require('../database/databaseConnection'),
     decks = require('./objectCollections/decks'),
-    slides = require('./objectCollections/slides');
+    slides = require('./objectCollections/slides'),
+    users = require('./objectCollections/users');
 
 module.exports = {
 
-    // parses query string into json params
     indexAll: function(){
         let promise = new Promise( (resolve, reject) => {
+            // index decks
             db.getAllFromCollection('decks').then( (dbDecks) => {
                 // console.log(decks.length);
                 for(let i=0; i<dbDecks.length; i++){
@@ -18,6 +19,8 @@ module.exports = {
             }).catch( (err) => {
                 reject('in db.getAllFromCollection(decks).' + err);
             });
+
+            // index slides
             db.getAllFromCollection('slides').then( (dbSlides) => {
                 // console.log(decks.length);
                 for(let i=0; i<dbSlides.length; i++){
@@ -26,6 +29,15 @@ module.exports = {
                 }
             }).catch( (err) => {
                 reject('in db.getAllFromCollection(slides).' + err);
+            });
+
+            // index users
+            db.getAllFromCollection('users').then( (dbUsers) => {
+                for(let i=0; i<dbUsers.length; i++){
+                    users.new(dbUsers[i]);
+                }
+            }).catch( (err) => {
+                reject('in db.getAllFromCollection(users).' + err);
             });
             resolve('All DB documents are now indexed in SOLR');
         });
