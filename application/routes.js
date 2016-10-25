@@ -29,11 +29,12 @@ module.exports = function(server) {
     // index all data from db
     server.route({
         method: 'GET',
-        path: '/index',
+        path: '/index/{collection}',
         handler: handlers.indexAll,
         config: {
             validate: {
                 params: {
+                    collection: Joi.string().description('Could by one of: decks, slides, users, all')
                 },
             },
             tags: ['api'],
@@ -41,7 +42,7 @@ module.exports = function(server) {
         }
     });
 
-    // index all data from db
+    // delete all data from db
     server.route({
         method: 'GET',
         path: '/delete',

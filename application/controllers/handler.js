@@ -30,9 +30,9 @@ module.exports = {
         });
     },
 
-    // index all objects from DB to SOLR
+    // index a collection from DB to SOLR
     indexAll: function(request, reply){
-        initIndex.indexAll().then( (res) => {
+        initIndex.indexAll(request.params.collection).then( (res) => {
             reply(res);
         }).catch( (error) => {
             request.log('initIndex.indexAll', error);
