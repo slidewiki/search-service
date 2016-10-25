@@ -10,8 +10,12 @@ module.exports = {
             let queryString = 'defType=edismax' +
                     '&q=' + q + '*' +
                     '&fq=kind:user' +
+                    '&qf=username^10 surname forename email organization _text_' +  //boost username match
                     '&fl=username' +
-                    '';
+                    '&rows=10&wt=json';
+
+            // console.log(queryString);
+
             solrClient.query(queryString).then( (res) => {
                 resolve(res);
             }).catch( (err) => {
