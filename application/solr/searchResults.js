@@ -35,11 +35,10 @@ module.exports = {
                 // '&revisions.sort=id asc' +
                 '&rows=50&wt=json';
 
-
             // let requestUri = 'http://' + solrUri + queryString;
             solrClient.query(queryString).then( (resp) => {
                 this.checkResponse(resp).then( (res) => {
-                
+
                     for(let i in res){
                         resp.docs[res[i].item].revisions = res[i];
                     }
