@@ -11,7 +11,7 @@ module.exports = {
                     '&q=' + q + '*' +
                     '&fq=kind:user' +
                     '&qf=username^10 surname forename email organization _text_' +  //boost username match
-                    '&fl=username' +
+                    '&fl=_id username' +
                     '&rows=10&wt=json';
 
             // console.log(queryString);
