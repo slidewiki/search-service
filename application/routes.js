@@ -57,6 +57,7 @@ module.exports = function(server) {
         }
     });
 
+    // suggest users
     server.route({
         method: 'GET',
         path: '/suggest/users/{q}',
@@ -69,6 +70,22 @@ module.exports = function(server) {
             },
             tags: ['api'],
             description: 'Get autosuggest results for users'
+        }
+    });
+
+    // suggest keywords
+    server.route({
+        method: 'GET',
+        path: '/suggest/keywords/{q}',
+        handler: suggestHandlers.findKeywords,
+        config: {
+            validate: {
+                params: {
+                    q: Joi.string()
+                },
+            },
+            tags: ['api'],
+            description: 'Get autosuggest results for keywords'
         }
     });
 };
