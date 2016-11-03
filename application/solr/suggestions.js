@@ -58,19 +58,39 @@ module.exports = {
     findKeywords: function(q){
         let promise = new Promise( (resolve, reject) => {
 
-            // facet.prefix=sp&wt=json&&facet.field=title&facet.field=content
+            let allKeywords = q.split(' ');
+            let curKeyword = allKeywords[allKeywords.length - 1];
+
+            let allExceptCurrent = [];
+            let prefix = '';
+            let paramQ = '*:*';
+            if(allKeywords.length > 1){
+                allExceptCurrent = allKeywords.slice(0, allKeywords.length-1);
+                prefix = allExceptCurrent.join(' ') + ' ';
+                let fieldFilter = '(' + allExceptCurrent.join(' AND ') + ')';
+                paramQ = 'title:' + fieldFilter +
+                    ' OR description:' + fieldFilter +
+                    ' OR content:' + fieldFilter;
+            }
 
             let queryString =
-                    'q=' + q + '*' +
+                    'q=' + paramQ +
                     '&facet=true' +
-                    '&facet.field=title&facet.field=description&facet.field=content&facet.field=speakernotes' +
-                    '&facet.prefix=' + q +
+                    '&facet.field=title&facet.field=description&facet.field=content' +
+                    '&facet.prefix=' + curKeyword +
                     '&rows=0&wt=json&json.nl=map';
 
             // console.log(queryString);
 
             solrClient.facet(queryString).then( (res) => {
                 let docs = mergeAndSortFacets(res, 10);
+                docs = docs.map( (el) => {
+                    return {
+                        key: prefix + el.key,
+                        value: el.value
+                    };
+                });
+
                 resolve({
                     numFound: docs.length,
                     start: 0,

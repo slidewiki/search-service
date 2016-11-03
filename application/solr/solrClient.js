@@ -61,7 +61,7 @@ module.exports = {
     facet: function(queryString){
         let promise = new Promise( (resolve, reject) => {
             let requestUri = solrUri + '?' + queryString;
-            // console.log(requestUri);
+            console.log(requestUri);
 
             request({
                 uri: requestUri,
