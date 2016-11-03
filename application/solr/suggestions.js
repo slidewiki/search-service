@@ -70,7 +70,12 @@ module.exports = {
             // console.log(queryString);
 
             solrClient.facet(queryString).then( (res) => {
-                resolve(mergeAndSortFacets(res, 10));
+                let docs = mergeAndSortFacets(res, 10);
+                resolve({
+                    numFound: docs.length,
+                    start: 0,
+                    docs: docs
+                });
             }).catch( (err) => {
                 reject(err);
             });
