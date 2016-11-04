@@ -1,7 +1,14 @@
 'use strict';
 
 const solrClient = require('./solrClient');
-
+function escapeSpecialChars(s){
+    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
+        return '\\' + match;
+    })
+    .replace(/&&/g, '\\&\\&')
+    .replace(/\|\|/g, '\\|\\|')
+    .replace(/'/g, '');
+}
 
 function mergeAndSortFacets(facetResults, limit){
 
@@ -21,6 +28,10 @@ function mergeAndSortFacets(facetResults, limit){
     // sort based on frequency
     let sortedResults = [];
     for(let key in mergedResults){
+        // bypass terms with zero score
+        if(mergedResults[key] === 0)
+            continue;
+
         sortedResults.push({
             key: key,
             value: mergedResults[key]
@@ -36,8 +47,9 @@ module.exports = {
     // finds users
     findUsers: function(q){
         let promise = new Promise( (resolve, reject) => {
+            console.log(q);
             let queryString = 'defType=edismax' +
-                    '&q=' + q + '*' +
+                    '&q=' + escapeSpecialChars(q) + '*' +
                     '&fq=kind:user' +
                     '&qf=username^10 surname forename email organization' +  //boost username match
                     '&fl=_id username' +
@@ -58,7 +70,7 @@ module.exports = {
     findKeywords: function(q){
         let promise = new Promise( (resolve, reject) => {
 
-            let allKeywords = q.split(' ');
+            let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ');     //trim multiple spaces and split
             let curKeyword = allKeywords[allKeywords.length - 1];
 
             let allExceptCurrent = [];
@@ -66,11 +78,12 @@ module.exports = {
             let paramQ = '*:*';
             if(allKeywords.length > 1){
                 allExceptCurrent = allKeywords.slice(0, allKeywords.length-1);
-                prefix = allExceptCurrent.join(' ') + ' ';
                 let fieldFilter = '(' + allExceptCurrent.join(' AND ') + ')';
                 paramQ = 'title:' + fieldFilter +
                     ' OR description:' + fieldFilter +
                     ' OR content:' + fieldFilter;
+                let index = q.lastIndexOf(' ');
+                prefix = q.substring(0, index) + ' ';
             }
 
             let queryString =
@@ -93,7 +106,6 @@ module.exports = {
 
                 resolve({
                     numFound: docs.length,
-                    start: 0,
                     docs: docs
                 });
             }).catch( (err) => {

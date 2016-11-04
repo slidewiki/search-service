@@ -67,7 +67,7 @@ module.exports = {
                 uri: requestUri,
                 method: 'GET'
             }, (err, response, body) => {
-
+                console.log(JSON.stringify(response));
                 let solrResponse = {};
 
                 if(err){
