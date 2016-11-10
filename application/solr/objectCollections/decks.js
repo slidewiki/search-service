@@ -74,6 +74,9 @@ function updateDeck(deckObj){
             if(prop === 'description' || prop === 'lastUpdate' || prop === 'license'){   //do not store active in root deck
                 updateObj[prop] = {'set': deckObj.data.$set[prop]};
             }
+            else if(prop === 'contributors'){
+                updateObj[prop] = {'set': deckObj.data.$set[prop].map( (contr) => { return contr.user; })};
+            }
         }
     }
 
