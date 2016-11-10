@@ -17,14 +17,18 @@ module.exports = {
         // watch slides collection
         let usersCollection = mongoConfig.SLIDEWIKIDATABASE + '.users';
         usersStream.watch(usersCollection, (event) => {
-            console.log('\nusers ' + JSON.stringify(event));
+            // console.log('\nusers ' + JSON.stringify(event));
 
             switch(event.operation){
                 case 'insert':
-                    users.new(event.data);
+                    users.new(event.data).catch( (err) => {
+                        console.log(err);
+                    });;
                     break;
                 case 'update':
-                    users.update(event);
+                    users.update(event).catch( (err) => {
+                        console.log(err);
+                    });;
                     break;
             }
         });

@@ -3,21 +3,18 @@
 const solr = require('solr-client'),
     config = require('../configuration').solrConfig,
     request = require('request'),
-    solrUri = 'http://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE  + '/query';
+    solrUri = 'http://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE  + '/query',
+    client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
 
 
 module.exports = {
-    addDocs: function(slideObj){
+    addDocs: function(data){
         let promise = new Promise( (resolve, reject) => {
 
-            let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
-
-            client.add(slideObj, (err, obj) => {
+            client.add(data, (err, obj) => {
                 if(err){
-                    // console.log(err);
-                    reject(err);
+                    reject('addDocs : ' + JSON.stringify(err) + '\ndata: ' + JSON.stringify(data));
                 }else{
-                    // console.log(obj);
                     resolve(obj);
                 }
             });
@@ -26,7 +23,6 @@ module.exports = {
     },
 
     commit: function(){
-        let client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
         client.commit();
     },
     query: function(queryString, item){
@@ -61,13 +57,13 @@ module.exports = {
     facet: function(queryString){
         let promise = new Promise( (resolve, reject) => {
             let requestUri = solrUri + '?' + queryString;
-            console.log(requestUri);
+            // console.log(requestUri);
 
             request({
                 uri: requestUri,
                 method: 'GET'
             }, (err, response, body) => {
-                console.log(JSON.stringify(response));
+                // console.log(JSON.stringify(response));
                 let solrResponse = {};
 
                 if(err){

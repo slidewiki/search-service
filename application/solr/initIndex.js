@@ -5,13 +5,24 @@ const db = require('../database/databaseConnection'),
     slides = require('./objectCollections/slides'),
     users = require('./objectCollections/users');
 
+
+function index(indexFunction, arr, el){
+    if(arr.length === el)
+        return;
+
+    indexFunction(arr[el]).then( (res) => {
+        // console.log(res);
+        index(indexFunction, arr, ++el);
+    }).catch( (err) => {
+        console.log(err);
+        index(indexFunction, arr, ++el);
+    });
+}
+
+
 function indexDecks(){
     db.getAllFromCollection('decks').then( (dbDecks) => {
-        // console.log(decks.length);
-        for(let i=0; i<dbDecks.length; i++){
-            // console.log(JSON.stringify(dbDecks[i]));
-            decks.newDeck(dbDecks[i]);
-        }
+        index(decks.newDeck, dbDecks, 0);
     }).catch( (err) => {
         reject('in db.getAllFromCollection(decks).' + err);
     });
@@ -19,11 +30,7 @@ function indexDecks(){
 
 function indexSlides(){
     db.getAllFromCollection('slides').then( (dbSlides) => {
-        // console.log(decks.length);
-        for(let i=0; i<dbSlides.length; i++){
-            // console.log(JSON.stringify(dbSlides[i]));
-            slides.newSlide(dbSlides[i]);
-        }
+        index(slides.newSlide, dbSlides, 0);
     }).catch( (err) => {
         reject('in db.getAllFromCollection(slides).' + err);
     });
@@ -31,9 +38,7 @@ function indexSlides(){
 
 function indexUsers(){
     db.getAllFromCollection('users').then( (dbUsers) => {
-        for(let i=0; i<dbUsers.length; i++){
-            users.new(dbUsers[i]);
-        }
+        index(users.new, dbUsers, 0);
     }).catch( (err) => {
         reject('in db.getAllFromCollection(users).' + err);
     });
@@ -56,7 +61,7 @@ module.exports = {
                 indexUsers();
             }
 
-            resolve(collection + ' are now indexed in SOLR');
+            resolve(collection + ' are being indexed in SOLR');
         });
         return promise;
     }

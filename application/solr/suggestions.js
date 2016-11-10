@@ -47,7 +47,7 @@ module.exports = {
     // finds users
     findUsers: function(q){
         let promise = new Promise( (resolve, reject) => {
-            console.log(q);
+            // console.log(q);
             let queryString = 'defType=edismax' +
                     '&q=' + escapeSpecialChars(q) + '*' +
                     '&fq=kind:user' +

@@ -19,7 +19,7 @@ module.exports = {
         rootDoc.kind = 'user';
 
         // console.log('new ' + JSON.stringify(rootDoc));
-        solrClient.addDocs(rootDoc).then( (result) => solrClient.commit() );
+        return solrClient.addDocs(rootDoc);
     },
 
     update: function(userDbObj){
@@ -47,7 +47,7 @@ module.exports = {
                 updateObj.solr_id = 'user_' + userDbObj.targetId;
                 // console.log('update ' + JSON.stringify(updateObj));
 
-                solrClient.addDocs(updateObj).then( (result) => solrClient.commit() );
+                return solrClient.addDocs(updateObj);
             }
         }
     }
