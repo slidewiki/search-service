@@ -10,7 +10,7 @@ function escapeSpecialChars(s){
     .replace(/'/g, '');
 }
 
-function mergeAndSortFacets(facetResults, limit){
+function mergeAndSortFacets(facetResults, previousKeywords, limit){
 
     // merge facet results of all fields
     let mergedResults = {};
@@ -28,8 +28,8 @@ function mergeAndSortFacets(facetResults, limit){
     // sort based on frequency
     let sortedResults = [];
     for(let key in mergedResults){
-        // bypass terms with zero score
-        if(mergedResults[key] === 0)
+        // bypass terms with zero score or that are contained in previously typed keywords
+        if(mergedResults[key] === 0 || previousKeywords.indexOf(key) > -1)
             continue;
 
         sortedResults.push({
@@ -49,7 +49,7 @@ module.exports = {
         let promise = new Promise( (resolve, reject) => {
             // console.log(q);
             let queryString = 'defType=edismax' +
-                    '&q=' + escapeSpecialChars(q) + '*' +
+                    '&q=' + escapeSpecialChars(encodeURIComponent(q)) + '*' +
                     '&fq=kind:user' +
                     '&qf=username^10 surname forename email organization' +  //boost username match
                     '&fl=_id username' +
@@ -70,7 +70,10 @@ module.exports = {
     findKeywords: function(q){
         let promise = new Promise( (resolve, reject) => {
 
-            let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ');     //trim multiple spaces and split
+            let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
+                return escapeSpecialChars(keyword);
+            });     //trim multiple spaces, split and escape
+            
             let curKeyword = allKeywords[allKeywords.length - 1];
 
             let allExceptCurrent = [];
@@ -87,16 +90,16 @@ module.exports = {
             }
 
             let queryString =
-                    'q=' + paramQ +
+                    'q=' + encodeURIComponent(paramQ) +
                     '&facet=true' +
                     '&facet.field=title&facet.field=description&facet.field=content' +
-                    '&facet.prefix=' + curKeyword +
+                    '&facet.prefix=' + encodeURIComponent(curKeyword) +
                     '&rows=0&wt=json&json.nl=map';
 
             // console.log(queryString);
 
             solrClient.facet(queryString).then( (res) => {
-                let docs = mergeAndSortFacets(res, 10);
+                let docs = mergeAndSortFacets(res, allExceptCurrent, 10);
                 docs = docs.map( (el) => {
                     return {
                         key: prefix + el.key,

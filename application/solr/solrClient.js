@@ -13,7 +13,7 @@ module.exports = {
 
             client.add(data, (err, obj) => {
                 if(err){
-                    reject('addDocs : ' + JSON.stringify(err) + '\ndata: ' + JSON.stringify(data));
+                    reject('addDocs : ' + JSON.stringify(err) + '\ndata: ' + JSON.stringify(data) + '\n');
                 }else{
                     resolve(obj);
                 }
