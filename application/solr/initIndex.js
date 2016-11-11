@@ -2,32 +2,66 @@
 
 const db = require('../database/databaseConnection'),
     decks = require('./objectCollections/decks'),
-    slides = require('./objectCollections/slides');
+    slides = require('./objectCollections/slides'),
+    users = require('./objectCollections/users');
+
+
+function index(indexFunction, arr, el){
+    if(arr.length === el)
+        return;
+
+    indexFunction(arr[el]).then( (res) => {
+        // console.log(res);
+        index(indexFunction, arr, ++el);
+    }).catch( (err) => {
+        console.log(err);
+        index(indexFunction, arr, ++el);
+    });
+}
+
+
+function indexDecks(){
+    db.getAllFromCollection('decks').then( (dbDecks) => {
+        index(decks.newDeck, dbDecks, 0);
+    }).catch( (err) => {
+        reject('in db.getAllFromCollection(decks).' + err);
+    });
+}
+
+function indexSlides(){
+    db.getAllFromCollection('slides').then( (dbSlides) => {
+        index(slides.newSlide, dbSlides, 0);
+    }).catch( (err) => {
+        reject('in db.getAllFromCollection(slides).' + err);
+    });
+}
+
+function indexUsers(){
+    db.getAllFromCollection('users').then( (dbUsers) => {
+        index(users.new, dbUsers, 0);
+    }).catch( (err) => {
+        reject('in db.getAllFromCollection(users).' + err);
+    });
+}
 
 module.exports = {
 
-    // parses query string into json params
-    indexAll: function(){
+    indexAll: function(collection){
         let promise = new Promise( (resolve, reject) => {
-            db.getAllFromCollection('decks').then( (dbDecks) => {
-                // console.log(decks.length);
-                for(let i=0; i<dbDecks.length; i++){
-                    // console.log(JSON.stringify(dbDecks[i]));
-                    decks.newDeck(dbDecks[i]);
-                }
-            }).catch( (err) => {
-                reject('in db.getAllFromCollection(decks).' + err);
-            });
-            db.getAllFromCollection('slides').then( (dbSlides) => {
-                // console.log(decks.length);
-                for(let i=0; i<dbSlides.length; i++){
-                    // console.log(JSON.stringify(dbSlides[i]));
-                    slides.newSlide(dbSlides[i]);
-                }
-            }).catch( (err) => {
-                reject('in db.getAllFromCollection(slides).' + err);
-            });
-            resolve('All DB documents are now indexed in SOLR');
+
+            if(collection === 'decks' || collection === 'all'){
+                indexDecks();
+            }
+
+            if(collection === 'slides' || collection === 'all'){
+                indexSlides();
+            }
+
+            if(collection === 'users' || collection === 'all'){
+                indexUsers();
+            }
+
+            resolve(collection + ' are being indexed in SOLR');
         });
         return promise;
     }

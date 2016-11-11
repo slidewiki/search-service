@@ -80,9 +80,14 @@ module.exports = {
             rootFilters.push('kind:' + params.entity);
         }
 
-        if(params.user){
-            params.user = encodeURIComponent(escapeSpecialChars(params.user));
-            rootFilters.push('user:' + params.user);
+        if(params.users){
+            let users = params.users.split(',');
+            let usersFilter = '';
+            for(let i in users){
+                usersFilter += (usersFilter !== '') ? ' OR ' : '';
+                usersFilter += 'user:' + encodeURIComponent(escapeSpecialChars(users[i]));
+            }
+            rootFilters.push('(' + usersFilter + ')');
         }
 
         if(params.license){

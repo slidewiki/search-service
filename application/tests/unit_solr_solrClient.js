@@ -4,7 +4,7 @@
 //Mocking is missing completely TODO add mocked objects
 
 describe('solr client', () => {
-    let client = require('../solr/solrClient.js');
+    let searchResults = require('../solr/searchResults.js');
     let params = {
         q: '*:*',
         entity: 'slide',
@@ -23,7 +23,7 @@ describe('solr client', () => {
 
     context('querying SOLR', () => {
         it('should reply with the results', (done) => {
-            client.get(params).then( (res) => {
+            searchResults.get(params).then( (res) => {
                 res.should.be.an('object').and.contain.keys('numFound','start', 'docs');
                 done();
             }).catch( (err) => {

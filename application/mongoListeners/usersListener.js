@@ -1,34 +1,34 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    decks = require('../solr/objectCollections/decks'),
+    users = require('../solr/objectCollections/users'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
     listen: function(){
 
         // init data stream
-        let decksStream = new MongoStream({
+        let usersStream = new MongoStream({
             format: 'pretty',
             host: mongoConfig.HOST,
             port: mongoConfig.PORT,
         });
 
-        // watch decks collection
-        let deckCollection = mongoConfig.SLIDEWIKIDATABASE + '.decks';
-        decksStream.watch(deckCollection, (event) => {
-            // console.log('\ndeck ' + JSON.stringify(event));
+        // watch slides collection
+        let usersCollection = mongoConfig.SLIDEWIKIDATABASE + '.users';
+        usersStream.watch(usersCollection, (event) => {
+            // console.log('\nusers ' + JSON.stringify(event));
 
             switch(event.operation){
                 case 'insert':
-                    decks.newDeck(event.data).catch( (err) => {
+                    users.new(event.data).catch( (err) => {
                         console.log(err);
-                    });
+                    });;
                     break;
                 case 'update':
-                    decks.updateDeck(event).catch( (err) => {
+                    users.update(event).catch( (err) => {
                         console.log(err);
-                    });
+                    });;
                     break;
             }
         });
