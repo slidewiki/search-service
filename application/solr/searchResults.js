@@ -30,11 +30,12 @@ module.exports = {
                 'q=' + rootQ + '{!join from=solr_parent_id to=solr_id score=max v=\'' + childQAndFQ + '\'}' +
                 '&fq=' + solr_params.rootFQ +
                 '&fl=*,revisions:[subquery]' +
+                '&sort=score desc, lastUpdate desc' +
                 '&revisions.q=' + solr_params.childQ + ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
                 '&revisions.fq=' + solr_params.childFQ +
-                // '&revisions.sort=id asc' +
+                '&revisions.sort=score desc, id desc' +
                 '&rows=50&wt=json';
-
+            
             // let requestUri = 'http://' + solrUri + queryString;
             solrClient.query(queryString).then( (resp) => {
                 this.checkResponse(resp).then( (res) => {
