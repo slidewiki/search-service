@@ -23,12 +23,12 @@ module.exports = {
                 case 'insert':
                     slides.newSlide(event.data).catch( (err) => {
                         console.log(err);
-                    });;
+                    });
                     break;
                 case 'update':
                     slides.updateSlide(event).catch( (err) => {
                         console.log(err);
-                    });;
+                    });
                     break;
             }
         });

@@ -23,12 +23,12 @@ module.exports = {
                 case 'insert':
                     users.new(event.data).catch( (err) => {
                         console.log(err);
-                    });;
+                    });
                     break;
                 case 'update':
                     users.update(event).catch( (err) => {
                         console.log(err);
-                    });;
+                    });
                     break;
             }
         });

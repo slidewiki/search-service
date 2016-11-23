@@ -25,7 +25,7 @@ module.exports = {
     update: function(userDbObj){
         // update specified fields
         if(!userDbObj.data.hasOwnProperty('$set')){
-            this.new(userDbObj.data);
+            return this.new(userDbObj.data);
         }
         else{
             let updateObj = {};
