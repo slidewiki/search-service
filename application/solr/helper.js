@@ -72,7 +72,8 @@ module.exports = {
             childFilters.push('tags:' + params.tags);
         }
 
-        if(params.revisions === 'false'){
+        // if param revisions is not set, search only in active revisions
+        if(params.revisions === 'false' || !params.hasOwnProperty('revisions')){
             childFilters.push('active:true');
         }
 
