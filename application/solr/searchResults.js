@@ -33,9 +33,9 @@ module.exports = {
                 '&sort=score desc, lastUpdate desc' +
                 '&revisions.q=' + solr_params.childQ + ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
                 '&revisions.fq=' + solr_params.childFQ +
-                '&revisions.sort=score desc, lastUpdate desc' +
+                '&revisions.sort=score desc, timestamp desc' +
                 '&rows=50&wt=json';
-                
+
             // let requestUri = 'http://' + solrUri + queryString;
             solrClient.query(queryString).then( (resp) => {
                 this.checkResponse(resp).then( (res) => {

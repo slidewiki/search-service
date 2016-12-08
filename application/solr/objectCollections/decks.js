@@ -1,8 +1,7 @@
 'use strict';
 
 const solrClient = require('../solrClient'),
-    microservices = require('../../microservices/microservicesConnection'),
-    co = require('../../common');
+    services = require('../../microservices/microservicesConnection');
 
 function newDeck(deckDbObj){
     let newDocs = [];
@@ -53,40 +52,43 @@ function newDeckRevision(parent_id, active, rev){
 
 
 function updateDeck(deckObj){
-    let newDocs = [];
+
 
     // update specified fields
     if(!deckObj.data.hasOwnProperty('$set')){
         return this.newDeck(deckObj.data);
     }
 
-    let updateObj = {};
-    for(let prop in deckObj.data.$set){
-        if(prop.indexOf('revisions') >= 0){
-            for(let i in deckObj.data.$set.revisions){
-                let rev = deckObj.data.$set.revisions[i];
-                newDocs.push(
-                    this.newDeckRevision(deckObj.targetId, deckObj.data.$set.active, rev)
-                );
-            }
-        }
-        else{
-            if(prop === 'description' || prop === 'lastUpdate' || prop === 'license'){   //do not store active in root deck
-                updateObj[prop] = {'set': deckObj.data.$set[prop]};
-            }
-            else if(prop === 'contributors'){
-                updateObj[prop] = {'set': deckObj.data.$set[prop].map( (contr) => { return contr.user; })};
-            }
-        }
-    }
+    return services.deckServiceRequest('deck', deckObj.targetId, newDeck);
 
-    // change made to root doc
-    if(!co.isEmpty(updateObj)){
-        updateObj.solr_id = 'deck_' + deckObj.targetId;
-        newDocs.push(updateObj);
-    }
-
-    return solrClient.addDocs(newDocs);
+    // let newDocs = [];
+    // let updateObj = {};
+    // for(let prop in deckObj.data.$set){
+    //     if(prop.indexOf('revisions') >= 0){
+    //         for(let i in deckObj.data.$set.revisions){
+    //             let rev = deckObj.data.$set.revisions[i];
+    //             newDocs.push(
+    //                 this.newDeckRevision(deckObj.targetId, deckObj.data.$set.active, rev)
+    //             );
+    //         }
+    //     }
+    //     else{
+    //         if(prop === 'description' || prop === 'lastUpdate' || prop === 'license'){   //do not store active in root deck
+    //             updateObj[prop] = {'set': deckObj.data.$set[prop]};
+    //         }
+    //         else if(prop === 'contributors'){
+    //             updateObj[prop] = {'set': deckObj.data.$set[prop].map( (contr) => { return contr.user; })};
+    //         }
+    //     }
+    // }
+    //
+    // // change made to root doc
+    // if(!co.isEmpty(updateObj)){
+    //     updateObj.solr_id = 'deck_' + deckObj.targetId;
+    //     newDocs.push(updateObj);
+    // }
+    //
+    // return solrClient.addDocs(newDocs);
 }
 
 module.exports = {
