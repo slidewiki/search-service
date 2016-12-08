@@ -37,11 +37,11 @@ if (!co.isEmpty(process.env.SOLR_PATH)){
   // console.log('Using path ' + path + ' as solr path.');
 }
 
-let userserviceURI = 'http://userservice.experimental.slidewiki.org';
-if (!co.isEmpty(process.env.SERVICE_URL_USER)){
-  userserviceURI = process.env.SERVICE_URL_USER;
+let deckServiceURI = 'http://deckservice.experimental.slidewiki.org';
+if (!co.isEmpty(process.env.SERVICE_URL_DECK)){
+  deckServiceURI = process.env.SERVICE_URL_DECK;
 }
-
+console.log('Connected with deck-service at: ' + deckServiceURI);
 
 let mongoHost = 'localhost';
 // const fs = require('fs');
@@ -67,7 +67,7 @@ module.exports = {
         PATH: path,
     },
     microservices: {
-      userserviceURI: userserviceURI
+      deckServiceURI: deckServiceURI
     },
     mongoConfig:{
       HOST: mongoHost,

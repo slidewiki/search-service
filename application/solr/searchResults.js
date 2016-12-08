@@ -20,7 +20,12 @@ module.exports = {
             }
             // query both parent and child docs
             else{
-                rootQ = '(' + solr_params.childQ +' AND (kind:slide OR kind:deck)) OR ';
+
+                rootQ = '(' + solr_params.childQ +' AND (kind:slide OR kind:deck)';
+
+                // added to support language in child docs
+                rootQ += (solr_params.childFQ !== '') ? ' AND {!join from=solr_parent_id to=solr_id score=max v=\'' + solr_params.childFQ + '\'}' : '';
+                rootQ += ') OR ';
             }
 
             let childQAndFQ = solr_params.childQ;
@@ -33,9 +38,9 @@ module.exports = {
                 '&sort=score desc, lastUpdate desc' +
                 '&revisions.q=' + solr_params.childQ + ' AND {!terms f=solr_parent_id v=$row.solr_id}' +
                 '&revisions.fq=' + solr_params.childFQ +
-                '&revisions.sort=score desc, lastUpdate desc' +
+                '&revisions.sort=score desc, timestamp desc' +
                 '&rows=50&wt=json';
-                
+
             // let requestUri = 'http://' + solrUri + queryString;
             solrClient.query(queryString).then( (resp) => {
                 this.checkResponse(resp).then( (res) => {

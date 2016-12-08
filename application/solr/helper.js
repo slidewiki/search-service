@@ -64,7 +64,7 @@ module.exports = {
         }
 
         if(params.language){
-            rootFilters.push('language:*' + params.language + '*');
+            childFilters.push('language:*' + params.language + '*');
         }
 
         if(params.tags){

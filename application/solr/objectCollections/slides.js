@@ -1,9 +1,8 @@
 'use strict';
 
 const solrClient = require('../solrClient'),
-    microservices = require('../../microservices/microservicesConnection'),
-    helper = require('../helper'),
-    co = require('../../common');
+    services = require('../../microservices/microservicesConnection'),
+    helper = require('../helper');
 
 function newSlide(slideDbObj){
     let newDocs = [];
@@ -16,7 +15,7 @@ function newSlide(slideDbObj){
     rootDoc.kind = 'slide';
     rootDoc.timestamp = slideDbObj.timestamp;
     rootDoc.lastUpdate = slideDbObj.lastUpdate;
-    rootDoc.language = slideDbObj.language;
+    // rootDoc.language = slideDbObj.language;
     rootDoc.license = slideDbObj.license;
     rootDoc.contributors = slideDbObj.contributors.map( (contr) => { return contr.user; });
     newDocs.push(rootDoc);
@@ -29,7 +28,7 @@ function newSlide(slideDbObj){
         //     }
         //     else{
                 // console.log('solr_id:slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id + ' is new');
-        let newRevision = newSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
+        let newRevision = newSlideRevision(slideDbObj._id, slideDbObj.revisions[i], slideDbObj.language);
         newDocs.push(newRevision);
         //     }
         // }).catch( (err) => {
@@ -46,48 +45,49 @@ function updateSlide(slideUpdateObj){
         return newSlide(slideUpdateObj.data);
     }
 
-    let newDocs = [];
-    let updateObj = {};
-    for(let prop in slideUpdateObj.data.$set){
-        if(prop.indexOf('revisions') >= 0){
-            for(let i in slideUpdateObj.data.$set.revisions){
-                let rev = slideUpdateObj.data.$set.revisions[i];
-                // solrClient.query('q=solr_id:slide_revision_' + slideUpdateObj.targetId + '-' + rev.id).then( (result) => {
-                //     // update existing slide revision
-                //     if(result.numFound > 0){
-                //         this.updateSlideRevision(slideUpdateObj.targetId, rev);
-                //     }
-                //     // new slide revision
-                //     else{
-                let newRevision = this.newSlideRevision(slideUpdateObj.targetId, rev);
-                newDocs.push(newRevision);
-                //     }
-                // }).catch( (err) => {
-                //     console.log('solrClient.query:' + err);
-                // });;
-            }
-        }
-        else{
-            if(prop === 'contributors'){
-                updateObj[prop] = {'set': slideUpdateObj.data.$set[prop].map( (contr) => { return contr.user; })};
-            }
-            else{
-                updateObj[prop] = {'set': slideUpdateObj.data.$set[prop]};
-            }
-
-        }
-    }
-
-    // changes in root slide were made
-    if(!co.isEmpty(updateObj)){
-        updateObj.solr_id = 'slide_' + slideUpdateObj.targetId;
-        newDocs.push(updateObj);
-    }
-
-    return solrClient.addDocs(newDocs);
+    return services.deckServiceRequest('slide', slideUpdateObj.targetId, newSlide);
+    // let newDocs = [];
+    // let updateObj = {};
+    // for(let prop in slideUpdateObj.data.$set){
+    //     if(prop.indexOf('revisions') >= 0){
+    //         for(let i in slideUpdateObj.data.$set.revisions){
+    //             let rev = slideUpdateObj.data.$set.revisions[i];
+    //             // solrClient.query('q=solr_id:slide_revision_' + slideUpdateObj.targetId + '-' + rev.id).then( (result) => {
+    //             //     // update existing slide revision
+    //             //     if(result.numFound > 0){
+    //             //         this.updateSlideRevision(slideUpdateObj.targetId, rev);
+    //             //     }
+    //             //     // new slide revision
+    //             //     else{
+    //             let newRevision = this.newSlideRevision(slideUpdateObj.targetId, rev);
+    //             newDocs.push(newRevision);
+    //             //     }
+    //             // }).catch( (err) => {
+    //             //     console.log('solrClient.query:' + err);
+    //             // });;
+    //         }
+    //     }
+    //     else{
+    //         if(prop === 'contributors'){
+    //             updateObj[prop] = {'set': slideUpdateObj.data.$set[prop].map( (contr) => { return contr.user; })};
+    //         }
+    //         else{
+    //             updateObj[prop] = {'set': slideUpdateObj.data.$set[prop]};
+    //         }
+    //
+    //     }
+    // }
+    //
+    // // changes in root slide were made
+    // if(!co.isEmpty(updateObj)){
+    //     updateObj.solr_id = 'slide_' + slideUpdateObj.targetId;
+    //     newDocs.push(updateObj);
+    // }
+    //
+    // return solrClient.addDocs(newDocs);
 }
 
-function newSlideRevision(parent_id, rev){
+function newSlideRevision(parent_id, rev, language){
     let newDoc = {};
 
     newDoc.solr_id = 'slide_revision_' + parent_id + '-' + rev.id;
@@ -104,7 +104,7 @@ function newSlideRevision(parent_id, rev){
     newDoc.speakernotes = (rev.speakernotes) ? helper.stripHTML(rev.speakernotes) : '';
     newDoc.parent_deck = (rev.usage.length === 0) ? '' : rev.usage[0].id + '-' + rev.usage[0].revision;
     newDoc.active = (rev.usage.length === 0) ? false : true;
-
+    newDoc.language = language;
     newDoc.usage = rev.usage.map( (us) => { return us.id + '-' + us.revision; });
     // let usage_arr = [];
     // for(let i in rev.usage){
