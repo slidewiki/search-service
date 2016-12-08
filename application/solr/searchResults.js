@@ -20,7 +20,12 @@ module.exports = {
             }
             // query both parent and child docs
             else{
-                rootQ = '(' + solr_params.childQ +' AND (kind:slide OR kind:deck)) OR ';
+
+                rootQ = '(' + solr_params.childQ +' AND (kind:slide OR kind:deck)';
+
+                // added to support language in child docs
+                rootQ += (solr_params.childFQ !== '') ? ' AND {!join from=solr_parent_id to=solr_id score=max v=\'' + solr_params.childFQ + '\'}' : '';
+                rootQ += ') OR ';
             }
 
             let childQAndFQ = solr_params.childQ;

@@ -3,7 +3,7 @@
 const solrClient = require('../solrClient'),
     services = require('../../microservices/microservicesConnection'),
     helper = require('../helper');
-    
+
 function newSlide(slideDbObj){
     let newDocs = [];
 
@@ -15,7 +15,7 @@ function newSlide(slideDbObj){
     rootDoc.kind = 'slide';
     rootDoc.timestamp = slideDbObj.timestamp;
     rootDoc.lastUpdate = slideDbObj.lastUpdate;
-    rootDoc.language = slideDbObj.language;
+    // rootDoc.language = slideDbObj.language;
     rootDoc.license = slideDbObj.license;
     rootDoc.contributors = slideDbObj.contributors.map( (contr) => { return contr.user; });
     newDocs.push(rootDoc);
@@ -28,7 +28,7 @@ function newSlide(slideDbObj){
         //     }
         //     else{
                 // console.log('solr_id:slide_revision_' + slideDbObj._id + '-' + slideDbObj.revisions[i].id + ' is new');
-        let newRevision = newSlideRevision(slideDbObj._id, slideDbObj.revisions[i]);
+        let newRevision = newSlideRevision(slideDbObj._id, slideDbObj.revisions[i], slideDbObj.language);
         newDocs.push(newRevision);
         //     }
         // }).catch( (err) => {
@@ -87,7 +87,7 @@ function updateSlide(slideUpdateObj){
     // return solrClient.addDocs(newDocs);
 }
 
-function newSlideRevision(parent_id, rev){
+function newSlideRevision(parent_id, rev, language){
     let newDoc = {};
 
     newDoc.solr_id = 'slide_revision_' + parent_id + '-' + rev.id;
@@ -104,7 +104,7 @@ function newSlideRevision(parent_id, rev){
     newDoc.speakernotes = (rev.speakernotes) ? helper.stripHTML(rev.speakernotes) : '';
     newDoc.parent_deck = (rev.usage.length === 0) ? '' : rev.usage[0].id + '-' + rev.usage[0].revision;
     newDoc.active = (rev.usage.length === 0) ? false : true;
-
+    newDoc.language = language;
     newDoc.usage = rev.usage.map( (us) => { return us.id + '-' + us.revision; });
     // let usage_arr = [];
     // for(let i in rev.usage){
