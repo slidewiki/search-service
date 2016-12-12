@@ -37,11 +37,19 @@ if (!co.isEmpty(process.env.SOLR_PATH)){
   // console.log('Using path ' + path + ' as solr path.');
 }
 
-let deckServiceURI = 'http://deckservice.experimental.slidewiki.org';
-if (!co.isEmpty(process.env.SERVICE_URL_DECK)){
-  deckServiceURI = process.env.SERVICE_URL_DECK;
+// deck service URI
+if (co.isEmpty(process.env.SERVICE_URL_DECK)){
+    console.log('No SERVICE_URL_DECK env variable defined');
+    process.exit(1);
 }
-console.log('Connected with deck-service at: ' + deckServiceURI);
+console.log('Connected with deck-service at: ' + process.env.SERVICE_URL_DECK);
+
+// user service URI
+if (co.isEmpty(process.env.SERVICE_URL_USER)){
+    console.log('No SERVICE_URL_USER env variable defined');
+    process.exit(2);
+}
+console.log('Connected with user-service at: ' + process.env.SERVICE_URL_USER);
 
 let mongoHost = 'localhost';
 // const fs = require('fs');
@@ -67,11 +75,12 @@ module.exports = {
         PATH: path,
     },
     microservices: {
-      deckServiceURI: deckServiceURI
+        deckServiceURI: process.env.SERVICE_URL_DECK,
+        userServiceURI: process.env.SERVICE_URL_USER
     },
     mongoConfig:{
-      HOST: mongoHost,
-      PORT: mongoPort,
-      SLIDEWIKIDATABASE: 'slidewiki'
+        HOST: mongoHost,
+        PORT: mongoPort,
+        SLIDEWIKIDATABASE: 'slidewiki'
     }
 };

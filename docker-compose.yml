@@ -12,3 +12,4 @@ template:
     - VIRTUAL_HOST=searchservice.experimental.slidewiki.org
     - SERVICE_URL_USER=http://userservice.experimental.slidewiki.org
     - SOLR_CORE=swikcore
+    - SERVICE_URL_DECK=http://deckservice.experimental.slidewiki.org
