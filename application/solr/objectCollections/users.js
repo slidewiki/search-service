@@ -49,6 +49,9 @@ module.exports = {
 
                 return solrClient.addDocs(updateObj);
             }
+            else{
+                return Promise.resolve();
+            }
         }
     }
 
