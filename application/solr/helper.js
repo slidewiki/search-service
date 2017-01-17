@@ -99,6 +99,7 @@ module.exports = {
         solr_params.rootFQ = (rootFilters.length > 0) ? rootFilters.join(' AND ') : '';
         solr_params.childQ = (childQ.length > 0 ) ? childQ.join(' AND ') : '*:*';
         solr_params.childFQ = (childFilters.length > 0) ? childFilters.join(' AND ') : '';
+        solr_params.sort = (params.sort) ? params.sort : 'score';
 
         return solr_params;
     },
