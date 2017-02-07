@@ -1,7 +1,7 @@
 'use strict';
 
 const rp = require('request-promise'),
-    microservices = require('../configuration').microservices;
+    microservices = require('../configs/microservices.js');
 
 
 module.exports = {
@@ -27,7 +27,7 @@ module.exports = {
     //     return promise;
     // }
     deckServiceRequest: function(docType, docId, callback){
-        return rp.get({uri: microservices.deckServiceURI + '/'+ docType + '/' + docId}).then( (doc) => {
+        return rp.get({uri: microservices.deck.uri + '/'+ docType + '/' + docId}).then( (doc) => {
             return Promise.resolve(callback(JSON.parse(doc)));
         });
     }
