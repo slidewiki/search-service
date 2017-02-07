@@ -18,10 +18,6 @@ try {
 } catch (e) {
     console.log('Exception: Windows or no read rights to read /etc/hosts (bad)');
 }
-//read mongo URL from ENV
-host = (!co.isEmpty(process.env.DATABASE_URL)) ? process.env.DATABASE_URL : host;
-if (host !== 'localhost')
-    console.log('Using ' + host + ' as database host.');
 
 //read solr port from ENV
 let port = 8983;
@@ -57,7 +53,7 @@ try {
     console.log('Exception: Windows or no read rights to read /etc/hosts (bad)');
 }
 //read mongo URL from ENV
-mongoHost = (!co.isEmpty(process.env.DATABASE_URL)) ? process.env.DATABASE_URL : host;
+mongoHost = (!co.isEmpty(process.env.DATABASE_URL)) ? process.env.DATABASE_URL : mongoHost;
 if (mongoHost !== 'localhost')
     console.log('Found mongodb host. Using ' + mongoHost + ' as database host.');
 
