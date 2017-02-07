@@ -3,8 +3,6 @@
 const solrClient = require('../solrClient'),
     services = require('../../microservices/microservicesConnection');
 
-
-
 function newDeck(deckObj){
     let newDocs = deckObj.revisions.map( (rev) => {
         let doc = {
@@ -25,15 +23,17 @@ function newDeck(deckObj){
             active: ((rev.id === deckObj.active) || (rev.usage.length > 0)) ? true : false
         };
 
-        // if language is undefined, set no language-specific processing
+        // if language field is not identified, then set text processing to general
         // (this should not happen in normal execution)
-        if(!rev.language){
-            rev.language = 'general';
+        let lang = rev.language;
+        let langs = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'];
+        if(langs.indexOf(lang) <= -1){
+            lang = 'general';
         }
 
         // language specific fields
-        doc['title_' + rev.language] = rev.title;
-        doc['description_' + rev.language] = deckObj.description;
+        doc['title_' + lang] = (rev.title) ? rev.title : '';
+        doc['description_' + lang] = (deckObj.description) ? deckObj.description : '';
 
         return doc;
     });
