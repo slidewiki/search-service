@@ -22,12 +22,13 @@ function newDeck(deckObj){
             revision_owner: rev.user,
             contributors: deckObj.contributors.map( (contr) => { return contr.user; }),
             tags: rev.tags,
-            active: ((rev.id === deckObj.active) || (rev.usage.length > 0)) ? true : false,
+            active: ((rev.id === deckObj.active) || (rev.usage.length > 0)) ? true : false
         };
 
-        // if language is undefined, set English (this should not happen in normal execution)
+        // if language is undefined, set no language-specific processing
+        // (this should not happen in normal execution)
         if(!rev.language){
-            rev.language = 'en_GB';
+            rev.language = 'general';
         }
 
         // language specific fields
@@ -38,6 +39,14 @@ function newDeck(deckObj){
     });
 
     return solrClient.addDocs(newDocs);
+}
+
+function updateDeck(deckObj){
+    if(!deckObj.data.hasOwnProperty('$set')){
+        return this.newDeck(deckObj.data);
+    }
+
+    return services.deckServiceRequest('deck', deckObj.targetId, newDeck);
 }
 
 // function newDeckOld(deckObj){

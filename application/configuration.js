@@ -26,7 +26,7 @@ if (!co.isEmpty(process.env.SOLR_CONFIG_PORT)) {
     // console.log('Using port ' + port + ' as solr port.');
 }
 
-let core = 'swTest';
+let core = 'swcore';
 if (!co.isEmpty(process.env.SOLR_CORE)) {
     core = process.env.SOLR_CORE;
     // console.log('Using core ' + core + ' as solr core.');
@@ -37,9 +37,6 @@ if (!co.isEmpty(process.env.SOLR_PATH)) {
     path = process.env.SOLR_PATH;
     // console.log('Using path ' + path + ' as solr path.');
 }
-
-console.log('Connected with deck-service at: ' + process.env.SERVICE_URL_DECK);
-console.log('Connected with user-service at: ' + process.env.SERVICE_URL_USER);
 
 let mongoHost = 'localhost';
 try {
@@ -52,6 +49,7 @@ try {
 } catch (e) {
     console.log('Exception: Windows or no read rights to read /etc/hosts (bad)');
 }
+
 //read mongo URL from ENV
 mongoHost = (!co.isEmpty(process.env.DATABASE_URL)) ? process.env.DATABASE_URL : mongoHost;
 if (mongoHost !== 'localhost')
