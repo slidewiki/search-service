@@ -104,6 +104,10 @@ module.exports = {
         return solr_params;
     },
     stripHTML: function(htmlString){
-        return htmlToText.fromString(htmlString);
+        return htmlToText.fromString(htmlString, {
+            // ignoreImage: true,
+            // ignoreHref: true,
+            uppercaseHeadings: false
+        });
     }
 };

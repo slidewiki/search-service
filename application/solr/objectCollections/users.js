@@ -10,7 +10,7 @@ module.exports = {
         // form root doc
         let rootDoc = {};
         rootDoc.solr_id = 'user_' + userDbObj._id;
-        rootDoc._id = userDbObj._id;
+        rootDoc.db_id = userDbObj._id;
         rootDoc.username = userDbObj.username;
         rootDoc.surname = userDbObj.surname;
         rootDoc.forename = userDbObj.forename;

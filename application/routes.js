@@ -13,13 +13,19 @@ module.exports = function(server) {
   // get query results from SOLR
     server.route({
         method: 'GET',
-        path: '/get/{queryparams}',
+        path: '/get',
         handler: handlers.getResults,
         config: {
             validate: {
-                params: {
-                    queryparams: Joi.string()
-                },
+                query: {
+                    keywords: Joi.string().required(),
+                    field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
+                    kind: Joi.string().valid('deck', 'slide', 'comment'),
+                    language: Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'),
+                    license: Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
+                    users: Joi.string(),
+                    tags: Joi.string()
+                }
             },
             tags: ['api'],
             description: 'Get SOLR search results'
@@ -34,7 +40,7 @@ module.exports = function(server) {
         config: {
             validate: {
                 params: {
-                    collection: Joi.string().description('Could by one of: decks, slides, users, all')
+                    collection: Joi.string().valid('decks', 'slides', 'users', 'all')
                 },
             },
             tags: ['api'],
