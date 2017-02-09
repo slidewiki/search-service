@@ -20,15 +20,10 @@ describe('REST API', () => {
         require('../routes.js')(server);
         done();
     });
-    //
-    // let slide = {
-    //   title: 'Dummy',
-    //   body: 'dummy',
-    //   language: 'en'
-    // };
+
     let options = {
         method: 'GET',
-        url: '/get/q=*:*&entity=slide&start=0&rows=10',
+        url: '/get?keywords=*:*&kind=slide&start=0',
         // payload: slide,
         headers: {
             'Content-Type': 'application/json'

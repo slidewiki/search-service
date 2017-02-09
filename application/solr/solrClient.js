@@ -25,7 +25,7 @@ module.exports = {
     commit: function(){
         client.commit();
     },
-    query: function(queryString, item){
+    query: function(queryString/*, item*/){
         let promise = new Promise( (resolve, reject) => {
             let requestUri = solrUri + '?' + queryString;
             // console.log(requestUri);
@@ -45,9 +45,9 @@ module.exports = {
                 }
                 else{
                     solrResponse = JSON.parse(body);
-                    if(item !== 'undefined'){
-                        solrResponse.response.item = item;
-                    }
+                    // if(item !== 'undefined'){
+                    //     solrResponse.response.item = item;
+                    // }
                     resolve(solrResponse.response);
                 }
             });

@@ -6,7 +6,7 @@
 describe('solr client', () => {
     let searchResults = require('../solr/searchResults.js');
     let params = {
-        q: '*:*',
+        keywords: '*:*',
         entity: 'slide',
         // start: 0,
         // rows: 10

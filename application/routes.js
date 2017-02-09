@@ -20,11 +20,28 @@ module.exports = function(server) {
                 query: {
                     keywords: Joi.string().required(),
                     field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
-                    kind: Joi.string().valid('deck', 'slide', 'comment'),
-                    language: Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'),
-                    license: Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
-                    users: Joi.string(),
-                    tags: Joi.string()
+                    kind: [
+                        Joi.string().valid('deck', 'slide', 'comment'),
+                        Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
+                    ],
+                    language: [
+                        Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'),
+                        Joi.array().items(Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'))
+                    ],
+                    license: [
+                        Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
+                        Joi.array().items(Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'))
+                    ],
+                    user: [
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
+                    ],
+                    tag: [
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
+                    ],
+                    sort: Joi.string().valid('score', 'lastUpdate'),
+                    start: Joi.string().default(0)
                 }
             },
             tags: ['api'],
