@@ -24,7 +24,7 @@ describe('solr client', () => {
     context('querying SOLR', () => {
         it('should reply with the results', (done) => {
             searchResults.get(params).then( (res) => {
-                res.should.be.an('object').and.contain.keys('numFound','start', 'docs');
+                res.should.be.an('object').and.contain.keys('responseHeader','response', 'expanded');
                 done();
             }).catch( (err) => {
                 console.log(err);

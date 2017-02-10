@@ -19,7 +19,6 @@ function index(indexFunction, arr, el){
     });
 }
 
-
 function indexDecks(){
     db.getAllFromCollection('decks').then( (dbDecks) => {
         index(decks.newDeck, dbDecks, 0);

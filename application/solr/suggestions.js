@@ -73,7 +73,7 @@ module.exports = {
             let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
                 return escapeSpecialChars(keyword);
             });     //trim multiple spaces, split and escape
-            
+
             let curKeyword = allKeywords[allKeywords.length - 1];
 
             let allExceptCurrent = [];
@@ -92,7 +92,7 @@ module.exports = {
             let queryString =
                     'q=' + encodeURIComponent(paramQ) +
                     '&facet=true' +
-                    '&facet.field=title&facet.field=description&facet.field=content' +
+                    '&facet.field=autocomplete' +
                     '&facet.prefix=' + encodeURIComponent(curKeyword) +
                     '&rows=0&wt=json&json.nl=map';
 

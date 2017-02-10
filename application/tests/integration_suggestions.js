@@ -35,6 +35,15 @@ describe('REST API', () => {
         }
     };
 
+    let options2 = {
+        method: 'GET',
+        url: '/suggest/keywords/*',
+        // payload: slide,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
     context('fetching username suggestions from SOLR', () => {
         it('should reply', (done) => {
             server.inject(options, (response) => {
@@ -42,7 +51,24 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('docs', 'numFound', 'start');
+                payload.should.be.an('object').and.contain.keys('responseHeader', 'response');
+                // payload.responseHeader.params.should.be.an('object').and.contain.keys('q', 'fq', 'start', 'rows');
+                // for(let i in payload.response.docs){
+                //   payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');
+                // }
+                done();
+            });
+        });
+    });
+
+    context('fetching keyword suggestions from SOLR', () => {
+        it('should reply', (done) => {
+            server.inject(options2, (response) => {
+                response.should.be.an('object').and.contain.keys('statusCode','payload');
+                response.statusCode.should.equal(200);
+                response.payload.should.be.a('string');
+                let payload = JSON.parse(response.payload);
+                payload.should.be.an('object').and.contain.keys('docs', 'numFound');
                 // payload.responseHeader.params.should.be.an('object').and.contain.keys('q', 'fq', 'start', 'rows');
                 // for(let i in payload.response.docs){
                 //   payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');
