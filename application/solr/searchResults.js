@@ -33,7 +33,8 @@ module.exports = {
         solrQuery.push('expand=true');
         solrQuery.push('expand.sort=score desc, db_revision_id desc');
         solrQuery.push('expand.rows=100');
+        // solrQuery.push('facet=true');
 
-        return Promise.resolve(solrClient.query(solrQuery.join('&')));
+        return Promise.resolve(solrClient.query(solrQuery.join('&'), 'swSearch'));
     }
 };

@@ -25,12 +25,12 @@ function newSlide(slideObj){
             active: (rev.usage.length === 0) ? false : true
         };
 
-        // if language field is not identified, then set text processing to general
+        // if language field is not identified, then set text processing to english
         // (this should not happen in normal execution)
         let lang = slideObj.language;
         let langs = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'];
         if(langs.indexOf(lang) <= -1){
-            lang = 'general';
+            lang = 'en_GB';
         }
 
         // language specific fields

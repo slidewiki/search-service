@@ -25,21 +25,11 @@ module.exports = {
         client.commit();
     },
 
-    query: function(queryString){
-        let requestUri = solrUri + '/swSearch?' + queryString;
+    query: function(queryString, requestHandler){
+        let requestUri = solrUri + '/'+ requestHandler + '?' + queryString;
 
         return rp.get({uri: requestUri}).then( (response) => {
             return Promise.resolve(JSON.parse(response));
-        }).catch( (err) => {
-            return Promise.reject(err);
-        });
-    },
-
-    facet: function(queryString){
-        let requestUri = solrUri + '/swSearch?' + queryString;
-
-        return rp.get({uri: requestUri}).then( (response) => {
-            return Promise.resolve(JSON.parse(response).facet_counts.facet_fields);
         }).catch( (err) => {
             return Promise.reject(err);
         });

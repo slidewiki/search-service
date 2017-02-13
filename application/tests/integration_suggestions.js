@@ -28,7 +28,7 @@ describe('REST API', () => {
     // };
     let options = {
         method: 'GET',
-        url: '/suggest/users/*',
+        url: '/suggest/users?q=*',
         // payload: slide,
         headers: {
             'Content-Type': 'application/json'
@@ -37,7 +37,7 @@ describe('REST API', () => {
 
     let options2 = {
         method: 'GET',
-        url: '/suggest/keywords/*',
+        url: '/suggest/keywords?q=*',
         // payload: slide,
         headers: {
             'Content-Type': 'application/json'
@@ -68,7 +68,7 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('docs', 'numFound');
+                payload.should.be.an('object').and.contain.keys('responseHeader', 'response');
                 // payload.responseHeader.params.should.be.an('object').and.contain.keys('q', 'fq', 'start', 'rows');
                 // for(let i in payload.response.docs){
                 //   payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');

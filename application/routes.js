@@ -5,9 +5,7 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 'use strict';
 
 const Joi = require('joi'),
-    handlers = require('./controllers/handler'),
-    suggestHandlers = require('./controllers/suggest_handlers');
-
+    handlers = require('./controllers/handler');
 module.exports = function(server) {
 
   // get query results from SOLR
@@ -80,35 +78,22 @@ module.exports = function(server) {
         }
     });
 
-    // suggest users
+    // suggest keywords or users
     server.route({
         method: 'GET',
-        path: '/suggest/users/{q}',
-        handler: suggestHandlers.findUsers,
+        path: '/suggest/{source}',
+        handler: handlers.suggest,
         config: {
             validate: {
                 params: {
-                    q: Joi.string()
+                    source: Joi.string().valid('keywords', 'users')
                 },
+                query: {
+                    q: Joi.string()
+                }
             },
             tags: ['api'],
             description: 'Get autosuggest results for users'
-        }
-    });
-
-    // suggest keywords
-    server.route({
-        method: 'GET',
-        path: '/suggest/keywords/{q}',
-        handler: suggestHandlers.findKeywords,
-        config: {
-            validate: {
-                params: {
-                    q: Joi.string()
-                },
-            },
-            tags: ['api'],
-            description: 'Get autosuggest results for keywords'
         }
     });
 };
