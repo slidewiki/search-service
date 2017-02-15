@@ -11,7 +11,7 @@ module.exports = function(server) {
   // get query results from SOLR
     server.route({
         method: 'GET',
-        path: '/get',
+        path: '/search',
         handler: handlers.getResults,
         config: {
             validate: {
