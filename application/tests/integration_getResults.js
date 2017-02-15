@@ -23,7 +23,7 @@ describe('REST API', () => {
 
     let options = {
         method: 'GET',
-        url: '/get?keywords=*:*&kind=slide&start=0',
+        url: '/search?keywords=*:*&kind=slide&start=0',
         // payload: slide,
         headers: {
             'Content-Type': 'application/json'
