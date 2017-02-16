@@ -14,43 +14,68 @@ module.exports = {
 
     // finds users
     findUsers: function(q){
-        let promise = new Promise( (resolve, reject) => {
 
-            let queryString = 'q=' + escapeSpecialChars(encodeURIComponent(q)) + '*';
+        let queryString = 'q=' + escapeSpecialChars(encodeURIComponent(q)) + '*';
 
-            resolve(solrClient.query(queryString, 'swSuggestUsers'));
-        });
-        return promise;
+        return Promise.resolve(solrClient.query(queryString, 'swSuggestUsers'));
+
     },
 
     // finds keywords
     findKeywords: function(q){
-        let promise = new Promise( (resolve, reject) => {
 
-            let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
-                return escapeSpecialChars(keyword);
-            });     //trim multiple spaces, split and escape
+        let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
+            return escapeSpecialChars(keyword);
+        });     //trim multiple spaces, split and escape
 
-            let curKeyword = allKeywords[allKeywords.length - 1];
+        let curKeyword = allKeywords[allKeywords.length - 1];
 
-            let allExceptCurrent = [];
-            let paramQ = '*:*';
-            if(allKeywords.length > 1){
-                allExceptCurrent = allKeywords.slice(0, allKeywords.length-1);
-                let fieldFilter = '(' + allExceptCurrent.join(' AND ') + ')';
-                paramQ = 'title:' + fieldFilter +
-                    ' OR description:' + fieldFilter +
-                    ' OR content:' + fieldFilter +
-                    ' OR speakernotes:' + fieldFilter;
+        let allExceptCurrent = [];
+        let paramQ = '*:*';
+        let prefix = '';
+        if(allKeywords.length > 1){
+            allExceptCurrent = allKeywords.slice(0, allKeywords.length-1);
+            let fieldFilter = '(' + allExceptCurrent.join(' AND ') + ')';
+            paramQ = 'title:' + fieldFilter +
+                ' OR description:' + fieldFilter +
+                ' OR content:' + fieldFilter +
+                ' OR speakernotes:' + fieldFilter;
+            let index = q.lastIndexOf(' ');
+            prefix = q.substring(0, index) + ' ';
+        }
+
+        let queryString =
+                'q=' + encodeURIComponent(paramQ) +
+                '&facet=true' +
+                '&facet.prefix=' + encodeURIComponent(curKeyword);
+
+        return solrClient.query(queryString, 'swSuggestKeywords').then( (res) => {
+            res = res.facet_counts.facet_fields.autocomplete;
+            let docs = [];
+
+            for(let el in res){
+
+                // bypass term in it is included in previous ones
+                if(allExceptCurrent.indexOf(el) > -1)
+                    continue;
+
+                // return only 5 suggestions
+                if(docs.length === 5)
+                    break;
+
+                docs.push({
+                    key: prefix + el,
+                    value: res[el]
+                });
             }
-
-            let queryString =
-                    'q=' + encodeURIComponent(paramQ) +
-                    '&facet=true' +
-                    '&facet.prefix=' + encodeURIComponent(curKeyword);
-
-            resolve(solrClient.query(queryString, 'swSuggestKeywords'));
+            return Promise.resolve({
+                response: {
+                    numFound: docs.length,
+                    docs: docs
+                }
+            });
+        }).catch( (err) => {
+            return Promise.reject(err);
         });
-        return promise;
     },
 };
