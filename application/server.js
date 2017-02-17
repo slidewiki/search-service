@@ -7,17 +7,17 @@ This application demonstrates a service which returns previously inserted data f
 
 //This is our webserver framework (instead of express)
 const hapi = require('hapi'),
-  co = require('./common'),
-  decksListener = require('./mongoListeners/decksListener'),
-  slidesListener = require('./mongoListeners/slidesListener'),
-  usersListener = require('./mongoListeners/usersListener');
+    co = require('./common'),
+    decksListener = require('./mongoListeners/decksListener'),
+    slidesListener = require('./mongoListeners/slidesListener'),
+    usersListener = require('./mongoListeners/usersListener');
 
 //Initiate the webserver with standard or given port
 const server = new hapi.Server({ connections: {routes: {validate: { options: {convert : false}}}}});
 
 let port = (!co.isEmpty(process.env.APPLICATION_PORT)) ? process.env.APPLICATION_PORT : 4000;
 server.connection({
-  port: port
+    port: port
 });
 let host = (!co.isEmpty(process.env.VIRTUAL_HOST)) ? process.env.VIRTUAL_HOST : server.info.host;
 
@@ -26,38 +26,38 @@ module.exports = server;
 
 //Plugin for sweet server console output
 let plugins = [
-  require('inert'),
-  require('vision'), {
-    register: require('good'),
-    options: {
-      ops: {
-        interval: 1000
-      },
-      reporters: {
-        console: [{
-          module: 'good-squeeze',
-          name: 'Squeeze',
-          args: [{
-            log: '*',
-            response: '*',
-            request: '*'
-          }]
-        }, {
-          module: 'good-console'
-        }, 'stdout']
-      }
+    require('inert'),
+    require('vision'), {
+        register: require('good'),
+        options: {
+            ops: {
+                interval: 1000
+            },
+            reporters: {
+                console: [{
+                    module: 'good-squeeze',
+                    name: 'Squeeze',
+                    args: [{
+                        log: '*',
+                        response: '*',
+                        request: '*'
+                    }]
+                }, {
+                    module: 'good-console'
+                }, 'stdout']
+            }
+        }
+    }, { //Plugin for swagger API documentation
+        register: require('hapi-swagger'),
+        options: {
+            host: host,
+            info: {
+                title: 'Search Service API',
+                description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
+                version: '0.1.0'
+            }
+        }
     }
-  }, { //Plugin for swagger API documentation
-    register: require('hapi-swagger'),
-    options: {
-      host: host,
-      info: {
-        title: 'Search Service API',
-        description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
-        version: '0.1.0'
-      }
-    }
-  }
 ];
 
 // start listening to mongo changes
@@ -67,14 +67,14 @@ usersListener.listen();
 
 //Register plugins and start webserver
 server.register(plugins, (err) => {
-  if (err) {
-    console.error(err);
-    global.process.exit();
-  } else {
-    server.start(() => {
-      server.log('info', 'Server started at ' + server.info.uri);
-      //Register routes
-      require('./routes.js')(server);
-    });
-  }
+    if (err) {
+        console.error(err);
+        global.process.exit();
+    } else {
+        server.start(() => {
+            server.log('info', 'Server started at ' + server.info.uri);
+            //Register routes
+            require('./routes.js')(server);
+        });
+    }
 });
