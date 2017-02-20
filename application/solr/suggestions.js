@@ -28,6 +28,9 @@ module.exports = {
             return escapeSpecialChars(keyword);
         });     //trim multiple spaces, split and escape
 
+        // filter empty elements
+        // allKeywords = allKeywords.filter( (el) => { return el !== undefined; });
+
         let curKeyword = allKeywords[allKeywords.length - 1];
 
         let allExceptCurrent = [];
@@ -52,22 +55,21 @@ module.exports = {
         return solrClient.query(queryString, 'swSuggestKeywords').then( (res) => {
             res = res.facet_counts.facet_fields.autocomplete;
             let docs = [];
-
-            for(let el in res){
-
-                // bypass term in it is included in previous ones
-                if(allExceptCurrent.indexOf(el) > -1)
+            let limit = 5;
+            for(let i=0; i<res.length; i = i+2){
+                if(allExceptCurrent.indexOf(res[i]) > -1)
                     continue;
 
-                // return only 5 suggestions
-                if(docs.length === 5)
+                // limit returned number of docs
+                if(docs.length === limit)
                     break;
 
                 docs.push({
-                    key: prefix + el,
-                    value: res[el]
+                    key: prefix + res[i],
+                    value: res[i+1]
                 });
             }
+
             return Promise.resolve({
                 response: {
                     numFound: docs.length,
