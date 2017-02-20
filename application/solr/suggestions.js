@@ -77,5 +77,5 @@ module.exports = {
         }).catch( (err) => {
             return Promise.reject(err);
         });
-    },
+    }
 };

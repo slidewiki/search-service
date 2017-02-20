@@ -26,7 +26,7 @@ if (!co.isEmpty(process.env.SOLR_CONFIG_PORT)) {
     // console.log('Using port ' + port + ' as solr port.');
 }
 
-let core = 'swcore';
+let core = 'swikcore';
 if (!co.isEmpty(process.env.SOLR_CORE)) {
     core = process.env.SOLR_CORE;
     // console.log('Using core ' + core + ' as solr core.');

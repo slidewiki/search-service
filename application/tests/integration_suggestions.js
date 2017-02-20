@@ -68,7 +68,7 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('numFound', 'docs');
+                payload.should.be.an('object').and.contain.keys('response');
                 // payload.responseHeader.params.should.be.an('object').and.contain.keys('q', 'fq', 'start', 'rows');
                 // for(let i in payload.response.docs){
                 //   payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');

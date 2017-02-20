@@ -23,7 +23,7 @@ function indexDecks(){
     db.getAllFromCollection('decks').then( (dbDecks) => {
         index(decks.newDeck, dbDecks, 0);
     }).catch( (err) => {
-        reject('in db.getAllFromCollection(decks).' + err);
+        console.log('in db.getAllFromCollection(decks).' + err);
     });
 }
 
@@ -31,7 +31,7 @@ function indexSlides(){
     db.getAllFromCollection('slides').then( (dbSlides) => {
         index(slides.newSlide, dbSlides, 0);
     }).catch( (err) => {
-        reject('in db.getAllFromCollection(slides).' + err);
+        console.log('in db.getAllFromCollection(slides).' + err);
     });
 }
 
@@ -39,7 +39,7 @@ function indexUsers(){
     db.getAllFromCollection('users').then( (dbUsers) => {
         index(users.new, dbUsers, 0);
     }).catch( (err) => {
-        reject('in db.getAllFromCollection(users).' + err);
+        console.log('in db.getAllFromCollection(users).' + err);
     });
 }
 
