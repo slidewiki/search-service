@@ -15,7 +15,7 @@ module.exports = {
     // form query params to solr params
     getSolrParameters(params){
 
-        params.keywords = '(' + encodeURIComponent(escapeSpecialChars(params.keywords)) + ')';
+        params.keywords = (params.keywords.trim() === '*') ? '*:*' : '(' + encodeURIComponent(params.keywords) + ')';
 
         // prepend a specific field to match keywords
         if(params.field) { params.keywords = params.field + ':' + params.keywords; }
@@ -41,7 +41,7 @@ module.exports = {
 
         return params;
     },
-    
+
     // retrieve text from html
     stripHTML: function(htmlString){
         return htmlToText.fromString(htmlString, {
