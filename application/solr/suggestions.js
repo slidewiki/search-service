@@ -64,10 +64,14 @@ module.exports = {
                 if(docs.length === limit)
                     break;
 
-                docs.push({
-                    key: prefix + res[i],
-                    value: res[i+1]
-                });
+                // if it has frequency greater than zero
+                if(res[i+1] > 0){
+                    docs.push({
+                        key: prefix + res[i],
+                        value: res[i+1]
+                    });
+                }
+
             }
 
             return Promise.resolve({
