@@ -5,6 +5,12 @@ const co = require('./common');
 
 //read solr URL from /etc/hosts
 let host = 'slidewiki.imis.athena-innovation.gr';
+if (!co.isEmpty(process.env.SOLR_HOST)) {
+    host = process.env.SOLR_HOST;
+    console.log('Using host ' + host + ' as solr host.');
+}
+
+
 const fs = require('fs');
 try {
     const lines = fs.readFileSync('/etc/hosts').toString().split('\n');
