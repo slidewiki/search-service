@@ -15,10 +15,11 @@ module.exports = {
     // form query params to solr params
     getSolrParameters(params){
 
-        params.keywords = (params.keywords.trim() === '*') ? '*:*' : '(' + encodeURIComponent(params.keywords) + ')';
+        // if keywords are not specified, then fetch all
+        params.keywords = (params.keywords) ? '(' + encodeURIComponent(params.keywords) + ')' : '*:*';
 
         // prepend a specific field to match keywords
-        if(params.field) { params.keywords = params.field + ':' + params.keywords; }
+        if(params.field && params.keywords !== '*:*') { params.keywords = params.field + ':' + params.keywords; }
 
         // if these params are arrays then make a disjunction of their values
         if(params.kind instanceof Array) { params.kind = params.kind.join(' OR '); }

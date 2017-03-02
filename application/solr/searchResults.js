@@ -26,6 +26,10 @@ module.exports = {
         // sort by
         solrQuery.push('sort=' + solrParams.sort + ' desc');
 
+        // needed for pagination
+        solrQuery.push('start=' + solrParams.start);
+        solrQuery.push('rows=' + solrParams.rows);
+
         // collapse on sold_parent_id field (group by)
         solrQuery.push('fq={!collapse field=solr_parent_id sort=\'score desc, db_revision_id desc\'}');
 

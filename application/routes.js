@@ -8,7 +8,7 @@ const Joi = require('joi'),
     handlers = require('./controllers/handler');
 module.exports = function(server) {
 
-  // get query results from SOLR
+    // get query results from SOLR
     server.route({
         method: 'GET',
         path: '/search',
@@ -16,7 +16,7 @@ module.exports = function(server) {
         config: {
             validate: {
                 query: {
-                    keywords: Joi.string().required(),
+                    keywords: Joi.string(),
                     field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
                     kind: [
                         Joi.string().valid('deck', 'slide', 'comment'),
@@ -39,7 +39,8 @@ module.exports = function(server) {
                         Joi.array().items(Joi.string())
                     ],
                     sort: Joi.string().valid('score', 'lastUpdate'),
-                    start: Joi.string().default(0)
+                    start: Joi.string().default(0),
+                    rows: Joi.string().default(50)
                 }
             },
             tags: ['api'],
