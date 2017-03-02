@@ -7,9 +7,9 @@ describe('solr client', () => {
     let searchResults = require('../solr/searchResults.js');
     let params = {
         keywords: '*:*',
-        entity: 'slide',
-        // start: 0,
-        // rows: 10
+        kind: 'slide',
+        start: 0,
+        rows: 10
     };
 
     // get modules
@@ -27,7 +27,8 @@ describe('solr client', () => {
                 res.should.be.an('object').and.contain.keys('responseHeader','response', 'expanded');
                 done();
             }).catch( (err) => {
-                console.log(err);
+                // console.log(err);
+                done(err);
             });
         });
     });
