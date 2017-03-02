@@ -16,7 +16,7 @@ module.exports = {
     getSolrParameters(params){
 
         // if keywords are not specified, then fetch all
-        params.keywords = (params.keywords === '*') ? '*:*' : '(' + encodeURIComponent(params.keywords) + ')';
+        params.keywords = (params.keywords === '*:*') ? params.keywords : '(' + encodeURIComponent(params.keywords) + ')';
 
         // prepend a specific field to match keywords
         if(params.field && params.keywords !== '*:*') { params.keywords = params.field + ':' + params.keywords; }
