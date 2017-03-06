@@ -3,9 +3,14 @@
 const solr = require('solr-client'),
     config = require('../configuration').solrConfig,
     rp = require('request-promise'),
-    solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
-    client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
-
+    solrUri = config.PROTOCOL + '://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
+    client = solr.createClient({
+        host: config.HOST,
+        port: config.PORT,
+        core: config.CORE,
+        path: config.PATH,
+        secure: (config.PROTOCOL === 'https')
+    });
 
 module.exports = {
     addDocs: function(data){

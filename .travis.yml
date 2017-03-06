@@ -42,10 +42,11 @@ notifications:
 env:
   global:
   - DOCKER_COMPOSE_VERSION=1.6.2
-  - SOLR_HOST=http://slidewiki.imis.athena-innovation.gr
+  - SOLR_HOST=slidewiki.imis.athena-innovation.gr
   - SOLR_CONFIG_PORT=8983
   - SOLR_CORE=swikcore
   - SOLR_PATH=/solr
+  - SOLR_PROTOCOL=http
   - DATABASE_URL=localhost
   - DATABASE_PORT=27017
   - secure: N/4XZGAKHtywbeMyjqYYuYUlN0nHkldikEMlgFWgtBPyMShTa0i0Wy7Wrk743NXdpoxJY1IR2Beld2vKYbw+K+v/GSB2tbF9wFXGmo4y8c+SdlUjnJwXAtTeh5dnEF10tiYZJDwicDRu3hJboXoL1hufqbaLylqg9qXXYGUmdXA3o2612p+ZIuIWmFkdO1IM1B+1Bo5ylMMCnJFBbWuqktvzghrdMxHBdwnAO34GvAHp3SXN16Q/U1b63JU8wf9zlYm5XerFykQ25jPwii0wthrtPScmkq1jHJjWVLiwyeqAcp8+fUpNOPCxNLRpQSMk9Dvo14RyUt4DgUzYA3H8sp7oXdUf/eMFa5rSGNLCgVw38FoCRRjh9STnKG/myA79chlXKhsK3TGc08pqPo3NVRBeUWcvit4FK0+udkg/CFOgnDMTRcyEkJyPGkWXes97Iw/JTsIy51ZGBnbOJSDHSFzQTESfOQn13b/VxTZ+jz78lsjXNF97mUS+7PXwLCENuTdcCjuGfc0uMSG1YiDG+ORVSYP/RQ6tO70ywm/P7OpweGNlo8Gik57fB1c46MJlVUi7tu7GyDFTDQqnF4eIjOHhpe+sP80iGjuH4NEsDjbNlhS4h1azdqMKQYn3+8dQKEdiciVNOKHHpOBlahelB2ZN40ZX4Co0uen30U63dzE=

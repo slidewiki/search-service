@@ -18,10 +18,11 @@ solrConfig.HOST = (!co.isEmpty(process.env.SOLR_HOST)) ? process.env.SOLR_HOST :
 solrConfig.PORT = (!co.isEmpty(process.env.SOLR_CONFIG_PORT)) ? process.env.SOLR_CONFIG_PORT : '8983';
 solrConfig.CORE = (!co.isEmpty(process.env.SOLR_CORE)) ? process.env.SOLR_CORE : 'swikcore';
 solrConfig.PATH = (!co.isEmpty(process.env.SOLR_PATH)) ? process.env.SOLR_PATH : '/solr';
+solrConfig.PROTOCOL = (!co.isEmpty(process.env.SOLR_PROTOCOL)) ? process.env.SOLR_PROTOCOL : 'http';
 //local testing SOLR config:
-//solrConfig.HOST = (!co.isEmpty(process.env.SOLR_HOST)) ? process.env.SOLR_HOST : 'http://slidewiki.imis.athena-innovation.gr';
+//solrConfig.HOST = (!co.isEmpty(process.env.SOLR_HOST)) ? process.env.SOLR_HOST : 'slidewiki.imis.athena-innovation.gr';
 //production SOLR config:
-solrConfig.HOST = (!co.isEmpty(process.env.SOLR_HOST)) ? process.env.SOLR_HOST : 'http://solr';
+solrConfig.HOST = (!co.isEmpty(process.env.SOLR_HOST)) ? process.env.SOLR_HOST : 'solr';
 
 console.log('#=========================== SOLR CONFIG ===========================#');
 console.log(JSON.stringify(solrConfig, null, 4));
