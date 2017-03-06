@@ -3,7 +3,7 @@
 const solr = require('solr-client'),
     config = require('../configuration').solrConfig,
     rp = require('request-promise'),
-    solrUri = 'http://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
+    solrUri = config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
     client = solr.createClient(config.HOST, config.PORT, config.CORE, config.PATH);
 
 
@@ -28,7 +28,7 @@ module.exports = {
     query: function(queryString, requestHandler){
         let requestUri = solrUri + '/'+ requestHandler + '?' + queryString;
 
-        console.log(requestUri);
+        // console.log(requestUri);
         return rp.get({uri: requestUri}).then( (response) => {
             return Promise.resolve(JSON.parse(response));
         }).catch( (err) => {
