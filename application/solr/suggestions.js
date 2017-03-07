@@ -10,111 +10,78 @@ function escapeSpecialChars(s){
     .replace(/'/g, '');
 }
 
-function mergeAndSortFacets(facetResults, previousKeywords, limit){
-
-    // merge facet results of all fields
-    let mergedResults = {};
-    for(let facetField in facetResults){
-        for (let key in facetResults[facetField]){
-            if(mergedResults.hasOwnProperty(key)){
-                mergedResults[key] += facetResults[facetField][key];
-            }
-            else{
-                mergedResults[key] = facetResults[facetField][key];
-            }
-        }
-    }
-
-    // sort based on frequency
-    let sortedResults = [];
-    for(let key in mergedResults){
-        // bypass terms with zero score or that are contained in previously typed keywords
-        if(mergedResults[key] === 0 || previousKeywords.indexOf(key) > -1)
-            continue;
-
-        sortedResults.push({
-            key: key,
-            value: mergedResults[key]
-        });
-    }
-    sortedResults.sort((x,y) => {return y.value - x.value;});
-
-    return sortedResults.slice(0, limit);
-}
-
 module.exports = {
 
     // finds users
     findUsers: function(q){
-        let promise = new Promise( (resolve, reject) => {
-            // console.log(q);
-            let queryString = 'defType=edismax' +
-                    '&q=' + escapeSpecialChars(encodeURIComponent(q)) + '*' +
-                    '&fq=kind:user' +
-                    '&qf=username^10 surname forename email organization' +  //boost username match
-                    '&fl=_id username' +
-                    '&rows=10&wt=json';
 
-            // console.log(queryString);
+        let queryString = 'q=' + escapeSpecialChars(encodeURIComponent(q)) + '*';
 
-            solrClient.query(queryString).then( (res) => {
-                resolve(res);
-            }).catch( (err) => {
-                reject(err);
-            });
-        });
-        return promise;
+        return Promise.resolve(solrClient.query(queryString, 'swSuggestUsers'));
+
     },
 
     // finds keywords
     findKeywords: function(q){
-        let promise = new Promise( (resolve, reject) => {
 
-            let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
-                return escapeSpecialChars(keyword);
-            });     //trim multiple spaces, split and escape
-            
-            let curKeyword = allKeywords[allKeywords.length - 1];
+        let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
+            return escapeSpecialChars(keyword);
+        });     //trim multiple spaces, split and escape
 
-            let allExceptCurrent = [];
-            let prefix = '';
-            let paramQ = '*:*';
-            if(allKeywords.length > 1){
-                allExceptCurrent = allKeywords.slice(0, allKeywords.length-1);
-                let fieldFilter = '(' + allExceptCurrent.join(' AND ') + ')';
-                paramQ = 'title:' + fieldFilter +
-                    ' OR description:' + fieldFilter +
-                    ' OR content:' + fieldFilter;
-                let index = q.lastIndexOf(' ');
-                prefix = q.substring(0, index) + ' ';
+        // filter empty elements
+        // allKeywords = allKeywords.filter( (el) => { return el !== undefined; });
+
+        let curKeyword = allKeywords[allKeywords.length - 1];
+
+        let allExceptCurrent = [];
+        let paramQ = '*:*';
+        let prefix = '';
+        if(allKeywords.length > 1){
+            allExceptCurrent = allKeywords.slice(0, allKeywords.length-1);
+            let fieldFilter = '(' + allExceptCurrent.join(' AND ') + ')';
+            paramQ = 'title:' + fieldFilter +
+                ' OR description:' + fieldFilter +
+                ' OR content:' + fieldFilter +
+                ' OR speakernotes:' + fieldFilter;
+            let index = q.lastIndexOf(' ');
+            prefix = q.substring(0, index) + ' ';
+        }
+
+        let queryString =
+                'q=' + encodeURIComponent(paramQ) +
+                '&facet=true' +
+                '&facet.prefix=' + encodeURIComponent(curKeyword);
+
+        return solrClient.query(queryString, 'swSuggestKeywords').then( (res) => {
+            res = res.facet_counts.facet_fields.autocomplete;
+            let docs = [];
+            let limit = 5;
+            for(let i=0; i<res.length; i = i+2){
+                if(allExceptCurrent.indexOf(res[i]) > -1)
+                    continue;
+
+                // limit returned number of docs
+                if(docs.length === limit)
+                    break;
+
+                // if it has frequency greater than zero
+                if(res[i+1] > 0){
+                    docs.push({
+                        key: prefix + res[i],
+                        value: res[i+1]
+                    });
+                }
+
             }
 
-            let queryString =
-                    'q=' + encodeURIComponent(paramQ) +
-                    '&facet=true' +
-                    '&facet.field=title&facet.field=description&facet.field=content' +
-                    '&facet.prefix=' + encodeURIComponent(curKeyword) +
-                    '&rows=0&wt=json&json.nl=map';
-
-            // console.log(queryString);
-
-            solrClient.facet(queryString).then( (res) => {
-                let docs = mergeAndSortFacets(res, allExceptCurrent, 10);
-                docs = docs.map( (el) => {
-                    return {
-                        key: prefix + el.key,
-                        value: el.value
-                    };
-                });
-
-                resolve({
+            return Promise.resolve({
+                response: {
                     numFound: docs.length,
                     docs: docs
-                });
-            }).catch( (err) => {
-                reject(err);
+                }
             });
+        }).catch( (err) => {
+            return Promise.reject(err);
         });
-        return promise;
-    },
+    }
 };

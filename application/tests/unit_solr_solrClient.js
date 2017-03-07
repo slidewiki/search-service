@@ -6,10 +6,10 @@
 describe('solr client', () => {
     let searchResults = require('../solr/searchResults.js');
     let params = {
-        q: '*:*',
-        entity: 'slide',
-        // start: 0,
-        // rows: 10
+        keywords: '*:*',
+        kind: 'slide',
+        start: 0,
+        rows: 10
     };
 
     // get modules
@@ -24,10 +24,11 @@ describe('solr client', () => {
     context('querying SOLR', () => {
         it('should reply with the results', (done) => {
             searchResults.get(params).then( (res) => {
-                res.should.be.an('object').and.contain.keys('numFound','start', 'docs');
+                res.should.be.an('object').and.contain.keys('responseHeader','response', 'expanded');
                 done();
             }).catch( (err) => {
-                console.log(err);
+                // console.log(err);
+                done(err);
             });
         });
     });

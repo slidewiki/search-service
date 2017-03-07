@@ -5,21 +5,43 @@ Each route implementes a basic parameter/payload validation and a swagger API do
 'use strict';
 
 const Joi = require('joi'),
-    handlers = require('./controllers/handler'),
-    suggestHandlers = require('./controllers/suggest_handlers');
-
+    handlers = require('./controllers/handler');
 module.exports = function(server) {
 
-  // get query results from SOLR
+    // get query results from SOLR
     server.route({
         method: 'GET',
-        path: '/get/{queryparams}',
+        path: '/search',
         handler: handlers.getResults,
         config: {
             validate: {
-                params: {
-                    queryparams: Joi.string()
-                },
+                query: {
+                    keywords: Joi.string().required(),
+                    field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
+                    kind: [
+                        Joi.string().valid('deck', 'slide', 'comment'),
+                        Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
+                    ],
+                    language: [
+                        Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'),
+                        Joi.array().items(Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'))
+                    ],
+                    license: [
+                        Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
+                        Joi.array().items(Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'))
+                    ],
+                    user: [
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
+                    ],
+                    tag: [
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
+                    ],
+                    sort: Joi.string().valid('score', 'lastUpdate'),
+                    start: Joi.string().default(0),
+                    rows: Joi.string().default(50)
+                }
             },
             tags: ['api'],
             description: 'Get SOLR search results'
@@ -34,7 +56,7 @@ module.exports = function(server) {
         config: {
             validate: {
                 params: {
-                    collection: Joi.string().description('Could by one of: decks, slides, users, all')
+                    collection: Joi.string().valid('decks', 'slides', 'users', 'all')
                 },
             },
             tags: ['api'],
@@ -57,35 +79,22 @@ module.exports = function(server) {
         }
     });
 
-    // suggest users
+    // suggest keywords or users
     server.route({
         method: 'GET',
-        path: '/suggest/users/{q}',
-        handler: suggestHandlers.findUsers,
+        path: '/suggest/{source}',
+        handler: handlers.suggest,
         config: {
             validate: {
                 params: {
-                    q: Joi.string()
+                    source: Joi.string().valid('keywords', 'users')
                 },
+                query: {
+                    q: Joi.string()
+                }
             },
             tags: ['api'],
             description: 'Get autosuggest results for users'
-        }
-    });
-
-    // suggest keywords
-    server.route({
-        method: 'GET',
-        path: '/suggest/keywords/{q}',
-        handler: suggestHandlers.findKeywords,
-        config: {
-            validate: {
-                params: {
-                    q: Joi.string()
-                },
-            },
-            tags: ['api'],
-            description: 'Get autosuggest results for keywords'
         }
     });
 };

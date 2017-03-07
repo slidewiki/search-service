@@ -6,26 +6,18 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     solrClient = require('../solr/solrClient'),
-    helper = require('../solr/helper'),
     initIndex = require('../solr/initIndex'),
-    searchResults = require('../solr/searchResults');
+    searchResults = require('../solr/searchResults'),
+    suggest = require('../solr/suggestions');
 
 module.exports = {
 
     // Get query results from SOLR or return INTERNAL_SERVER_ERROR
     getResults: function(request, reply){
-
-        // parse query params
-        helper.parse(request.params.queryparams).then( (queryparams) => {
-            // fetch results from SOLR
-            searchResults.get(queryparams).then( (results) => {
-                reply(results);
-            }).catch( (error) => {
-                request.log('searchResults.get', error);
-                reply(boom.badImplementation());
-            });
+        searchResults.get(request.query).then( (results) => {
+            reply(results);
         }).catch( (error) => {
-            request.log('helper.parse', error);
+            request.log('searchResults.get', error);
             reply(boom.badImplementation());
         });
     },
@@ -46,6 +38,18 @@ module.exports = {
             reply(res);
         }).catch( (error) => {
             request.log('solrClient.deleteAll', error);
+            reply(boom.badImplementation());
+        });
+    },
+
+    // suggest keywords or users
+    suggest: function(request, reply){
+        let suggestFunction = (request.params.source === 'keywords') ? suggest.findKeywords : suggest.findUsers;
+
+        suggestFunction(request.query.q).then( (res) => {
+            reply(res);
+        }).catch( (error) => {
+            request.log('suggest', error);
             reply(boom.badImplementation());
         });
     }
