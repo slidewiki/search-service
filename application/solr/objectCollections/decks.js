@@ -19,7 +19,7 @@ function newDeck(deckObj){
             creator: deckObj.user,
             revision_owner: rev.user,
             contributors: deckObj.contributors.map( (contr) => { return contr.user; }),
-            tags: rev.tags.map( (tag) => { return tag.tagName; }),
+            tags: (rev.tags || []).map( (tag) => { return tag.tagName; }),
             active: ((rev.id === deckObj.active) || (rev.usage.length > 0)) ? true : false
         };
 

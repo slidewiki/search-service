@@ -21,7 +21,7 @@ function newSlide(slideObj){
             creator: slideObj.user,
             revision_owner: rev.user,
             contributors: slideObj.contributors.map( (contr) => { return contr.user; }),
-            tags: rev.tags.map( (tag) => { return tag.tagName; }),
+            tags: (rev.tags || []).map( (tag) => { return tag.tagName; }),
             active: (rev.usage.length === 0) ? false : true
         };
 
