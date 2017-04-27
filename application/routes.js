@@ -39,6 +39,7 @@ module.exports = function(server) {
                         Joi.array().items(Joi.string())
                     ],
                     sort: Joi.string().valid('score', 'lastUpdate'),
+                    expand: Joi.string().valid('true', 'false').default('false'),
                     start: Joi.string().default(0),
                     rows: Joi.string().default(50)
                 }

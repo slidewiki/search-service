@@ -34,9 +34,12 @@ module.exports = {
         solrQuery.push('fq={!collapse field=solr_parent_id sort=\'score desc, db_revision_id desc\'}');
 
         // expand docs in the same group
-        solrQuery.push('expand=true');
-        solrQuery.push('expand.sort=score desc, db_revision_id desc');
-        solrQuery.push('expand.rows=100');
+        if(params.expand === 'true'){
+            solrQuery.push('expand=true');
+            solrQuery.push('expand.sort=score desc, db_revision_id desc');
+            solrQuery.push('expand.rows=100');
+        }
+
         // solrQuery.push('facet=true');
 
         return Promise.resolve(solrClient.query(solrQuery.join('&'), 'swSearch'));

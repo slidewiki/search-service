@@ -15,6 +15,16 @@ module.exports = {
     // Get query results from SOLR or return INTERNAL_SERVER_ERROR
     getResults: function(request, reply){
         searchResults.get(request.query).then( (results) => {
+
+            // delete solr header
+            delete results.responseHeader;
+
+            // delete autocomplete field and _version_ of results
+            results.response.docs.forEach( (res) => {
+                delete res.autocomplete;
+                delete res._version_;
+            });
+            
             reply(results);
         }).catch( (error) => {
             request.log('searchResults.get', error);
@@ -47,6 +57,7 @@ module.exports = {
         let suggestFunction = (request.params.source === 'keywords') ? suggest.findKeywords : suggest.findUsers;
 
         suggestFunction(request.query.q).then( (res) => {
+            delete res.responseHeader;
             reply(res);
         }).catch( (error) => {
             request.log('suggest', error);
