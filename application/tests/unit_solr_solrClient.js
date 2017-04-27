@@ -9,7 +9,8 @@ describe('solr client', () => {
         keywords: '*:*',
         kind: 'slide',
         start: 0,
-        rows: 10
+        rows: 10,
+        expand: 'true'
     };
 
     // get modules

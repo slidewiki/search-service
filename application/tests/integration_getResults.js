@@ -23,7 +23,7 @@ describe('REST API', () => {
 
     let options = {
         method: 'GET',
-        url: '/search?keywords=*:*&kind=slide&start=0',
+        url: '/search?keywords=*:*&kind=slide&start=0&expand=true',
         // payload: slide,
         headers: {
             'Content-Type': 'application/json'
@@ -37,7 +37,7 @@ describe('REST API', () => {
                 response.statusCode.should.equal(200);
                 response.payload.should.be.a('string');
                 let payload = JSON.parse(response.payload);
-                payload.should.be.an('object').and.contain.keys('responseHeader', 'response', 'expanded');
+                payload.should.be.an('object').and.contain.keys('response', 'expanded');
                 // payload.responseHeader.params.should.be.an('object').and.contain.keys('q', 'fq', 'start', 'rows');
                 // for(let i in payload.response.docs){
                 //   payload.response.docs[i].should.be.a('object').and.contain.keys('title', 'content', 'entity');
