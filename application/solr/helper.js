@@ -33,8 +33,8 @@ module.exports = {
         }
         if(params.tag){
             params.tag = (params.tag instanceof Array) ?
-                encodeURIComponent(escapeSpecialChars(params.tag.join(' OR '))) :
-                encodeURIComponent(escapeSpecialChars(params.tag));
+                encodeURIComponent(params.tag.map( (t) => {return `"${escapeSpecialChars(t)}"`;}).join(' OR ')) :
+                encodeURIComponent(`"${escapeSpecialChars(params.tag)}"`);
         }
 
         // set sorting field
