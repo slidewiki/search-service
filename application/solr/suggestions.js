@@ -1,6 +1,7 @@
 'use strict';
 
 const solrClient = require('./solrClient');
+
 function escapeSpecialChars(s){
     return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
         return '\\' + match;
@@ -10,15 +11,31 @@ function escapeSpecialChars(s){
     .replace(/'/g, '');
 }
 
+function getUserHighlight(user, userHighlight){
+    let username = (userHighlight.username) ? userHighlight.username : user.username;
+    let forename = (userHighlight.forename) ? userHighlight.forename : user.forename;
+    let surname = (userHighlight.surname) ? userHighlight.surname : user.surname;
+    return `${username}, ${forename} ${surname}`;
+}
+
+
 module.exports = {
 
     // finds users
     findUsers: function(q){
-
-        let queryString = 'q=' + escapeSpecialChars(encodeURIComponent(q)) + '*';
-
-        return Promise.resolve(solrClient.query(queryString, 'swSuggestUsers'));
-
+        let queryString = `q=${escapeSpecialChars(encodeURIComponent(q))}*&hl=true`;
+        
+        return solrClient.query(queryString, 'swSuggestUsers').then( (solrResponse) => {
+            let highlight = solrResponse.highlighting;
+ 
+            return solrResponse.response.docs.map( (user) => {
+                return {
+                    db_id: user.db_id, 
+                    username: user.username,
+                    highlight: getUserHighlight(user, highlight[user.solr_id])
+                };
+            });
+        });
     },
 
     // finds keywords
