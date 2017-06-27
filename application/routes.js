@@ -79,16 +79,29 @@ module.exports = function(server) {
         }
     });
 
-    // suggest keywords or users
+    // suggest keywords
     server.route({
         method: 'GET',
-        path: '/suggest/{source}',
-        handler: handlers.suggest,
+        path: '/suggest/keywords',
+        handler: handlers.suggestKeywords,
         config: {
             validate: {
-                params: {
-                    source: Joi.string().valid('keywords', 'users')
-                },
+                query: {
+                    q: Joi.string()
+                }
+            },
+            tags: ['api'],
+            description: 'Get autosuggest results for keywords'
+        }
+    });
+
+    // suggest users
+    server.route({
+        method: 'GET',
+        path: '/suggest/users',
+        handler: handlers.suggestUsers,
+        config: {
+            validate: {
                 query: {
                     q: Joi.string()
                 }

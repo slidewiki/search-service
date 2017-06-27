@@ -31,13 +31,12 @@ module.exports = {
     },
 
     query: function(queryString, requestHandler){
-        let requestUri = solrUri + '/'+ requestHandler + '?' + queryString;
+        let requestUri = `${solrUri}/${requestHandler}?${queryString}`;
 
         // console.log(requestUri);
-        return rp.get({uri: requestUri}).then( (response) => {
-            return Promise.resolve(JSON.parse(response));
-        }).catch( (err) => {
-            return Promise.reject(err);
+        return rp.get({
+            uri: requestUri,
+            json: true
         });
     },
 

@@ -43,13 +43,20 @@ module.exports = {
     },
 
     // suggest keywords or users
-    suggest: function(request, reply){
-        let suggestFunction = (request.params.source === 'keywords') ? suggest.findKeywords : suggest.findUsers;
+    suggestKeywords: function(request, reply){
+        suggest.findKeywords(request.query.q).then( (keywords) => {
+            reply(keywords);
+        }).catch( (err) => {
+            request.log('error', err);
+            reply(boom.badImplementation());
+        });
+    }, 
 
-        suggestFunction(request.query.q).then( (res) => {
-            reply(res);
-        }).catch( (error) => {
-            request.log('suggest', error);
+    suggestUsers: function(request, reply){
+        suggest.findUsers(request.query.q).then( (users) => {
+            reply(users);
+        }).catch( (err) => {
+            request.log('error', err);
             reply(boom.badImplementation());
         });
     }
