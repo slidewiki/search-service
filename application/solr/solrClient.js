@@ -17,7 +17,10 @@ module.exports = {
         let promise = new Promise( (resolve, reject) => {
             client.add(data, (err, obj) => {
                 if(err){
-                    reject('addDocs : ' + JSON.stringify(err) + '\ndata: ' + JSON.stringify(data) + '\n');
+                    reject({
+                        message: err.message, 
+                        data: data
+                    });
                 }else{
                     resolve(obj);
                 }
@@ -45,7 +48,7 @@ module.exports = {
         let requestUri = solrUri + '/update?stream.body=<delete><query>*:*</query></delete>&commit=true';
 
         return rp.get({uri: requestUri}).then( () => {
-            return Promise.resolve('All documents are deleted from SOLR Index');
+            return Promise.resolve('All documents were deleted from SOLR Index');
         }).catch( (err) => {
             return Promise.reject(err);
         });

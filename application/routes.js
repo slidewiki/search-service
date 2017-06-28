@@ -47,38 +47,7 @@ module.exports = function(server) {
             description: 'Get SOLR search results'
         }
     });
-
-    // index all data from db
-    server.route({
-        method: 'GET',
-        path: '/index/{collection}',
-        handler: handlers.indexAll,
-        config: {
-            validate: {
-                params: {
-                    collection: Joi.string().valid('decks', 'slides', 'users', 'all')
-                },
-            },
-            tags: ['api'],
-            description: 'Index all data from DB in SOLR'
-        }
-    });
-
-    // delete all data from db
-    server.route({
-        method: 'GET',
-        path: '/delete',
-        handler: handlers.deleteAll,
-        config: {
-            validate: {
-                params: {
-                },
-            },
-            tags: ['api'],
-            description: 'Delete all documents from SOLR'
-        }
-    });
-
+    
     // suggest keywords or users
     server.route({
         method: 'GET',

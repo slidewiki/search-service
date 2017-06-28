@@ -1,0 +1,80 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const config = require('../configuration');
+const async = require('async');
+const ProgressBar = require('progress');
+const db = require('../database/databaseConnection');
+
+const decks = require('../solr/objectCollections/decks');
+const slides = require('../solr/objectCollections/slides');
+const users = require('../solr/objectCollections/users');
+
+function index(collection, indexFunction){
+	let limit = 50;
+	let allowErrors = 20;
+
+	return new Promise( (resolve, reject) => {
+		db.getTotalCount(collection).then( (totalCount) => {
+			console.log(`Indexing ${totalCount} ${collection}`);
+
+		    let offset = 0;
+		    let progressBar = new ProgressBar(`${collection} progress [:bar] :percent`, { total: totalCount });
+
+		    async.doWhilst(
+		        (callback) => {
+		            db.getAll(collection, offset, limit).then( (docs) => {
+		            	async.eachSeries(docs, (doc, callback2) => {
+		            		progressBar.tick();
+		            		indexFunction(doc).then( () => {
+		            			callback2();
+		            		}).catch( (err) => {
+		            			console.log(err);
+
+		            			// if there are too many errors, reject promise
+		            			if(--allowErrors === 0){
+		            				reject('Too many errors, please check configuration and try again');
+		            			}
+		            			callback2();
+		            		});
+		            	}, () => {
+		            		offset += limit;
+		            		callback();
+		            	});
+		            }).catch( (err) => {
+		               reject(err.message);
+		            });
+		        },
+		        () => { return offset <= totalCount; },
+		        () => { resolve(`Initial index of ${collection} has been completed`); }
+		    );
+		}).catch( (err) => { reject(err.message); });
+	});
+	
+}
+
+
+let collectionsToIndex = [
+	{ name: 'users', indexMethod: users.new },
+	{ name: 'decks', indexMethod: decks.newDeck }, 
+	{ name: 'slides', indexMethod: slides.newSlide }
+];
+
+async.eachSeries(collectionsToIndex, (col, callback) => {
+	console.log();
+	index(col.name, col.indexMethod).then( (res) => {
+		console.log(res);
+		callback();
+	}).catch( (err) => {
+		callback(err);
+	});
+}, (err) => {
+	if(err){
+		console.log(err);
+		process.exit(-1);
+	}
+
+	console.log('Initial index has been successfully completed');
+	process.exit(0);
+});

@@ -7,10 +7,16 @@ Controller for handling mongodb and the data model slide while providing CRUD'is
 const helper = require('./helper');
 
 module.exports = {
-    getAllFromCollection: function(collectionName) {
+    getAll: function (collection, offset, limit) {
         return helper.connectToDatabase()
-            .then((db) => db.collection(collectionName))
-            .then((col) => col.find())
-            .then((stream) => stream.toArray());
+        .then((db) => db.collection(collection))
+        .then((col) => col.find({}).skip(offset).limit(limit).sort({_id:1}))
+        .then((cursor) => cursor.toArray());
+    },
+
+    getTotalCount: function(collection){
+        return helper.connectToDatabase()
+        .then((db) => db.collection(collection))
+        .then((col) => col.find({}).count());
     }
 };
