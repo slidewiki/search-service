@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const config = require('../configuration');
+const solrClient = require('../solr/solrClient');
+
+
+solrClient.deleteAll().then( (res) => {
+    console.log(res);
+}).catch( (error) => {
+    console.log(error.message);
+});
