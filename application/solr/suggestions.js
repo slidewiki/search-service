@@ -12,10 +12,15 @@ function escapeSpecialChars(s){
 }
 
 function getUserHighlight(user, userHighlight){
-    let username = (userHighlight.username) ? userHighlight.username : user.username;
-    let forename = (userHighlight.forename) ? userHighlight.forename : user.forename;
-    let surname = (userHighlight.surname) ? userHighlight.surname : user.surname;
-    return `${username}, ${forename} ${surname}`;
+    let highlightText = (userHighlight.username) ? userHighlight.username[0] : user.username;
+    
+    let forename = (userHighlight.forename) ? userHighlight.forename[0] : user.forename;
+    if(forename) highlightText += `, ${forename}`;  
+
+    let surname = (userHighlight.surname) ? userHighlight.surname[0] : user.surname;
+    if(surname) highlightText += ` ${surname}`;
+
+    return highlightText;
 }
 
 
