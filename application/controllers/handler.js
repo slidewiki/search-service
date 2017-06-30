@@ -21,11 +21,19 @@ module.exports = {
         });
     },
 
-    // suggest keywords or users
-    suggest: function(request, reply){
-        let suggestFunction = (request.params.source === 'keywords') ? suggest.findKeywords : suggest.findUsers;
+    // suggest keywords
+    suggestKeywords: function(request, reply){
+        suggest.findKeywords(request.query.q).then( (res) => {
+            reply(res);
+        }).catch( (error) => {
+            request.log('suggest', error);
+            reply(boom.badImplementation());
+        });
+    }, 
 
-        suggestFunction(request.query.q).then( (res) => {
+    // suggest keywords or users
+    suggestUsers: function(request, reply){
+        suggest.findUsers(request.query.q).then( (res) => {
             reply(res);
         }).catch( (error) => {
             request.log('suggest', error);

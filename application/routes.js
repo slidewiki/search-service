@@ -47,17 +47,30 @@ module.exports = function(server) {
             description: 'Get SOLR search results'
         }
     });
-    
+
+    // suggest keywords
+    server.route({
+        method: 'GET',
+        path: '/suggest/keywords',
+        handler: handlers.suggestKeywords,
+        config: {
+            validate: {
+                query: {
+                    q: Joi.string()
+                }
+            },
+            tags: ['api'],
+            description: 'Get autosuggest results for keywords'
+        }
+    });
+
     // suggest keywords or users
     server.route({
         method: 'GET',
-        path: '/suggest/{source}',
-        handler: handlers.suggest,
+        path: '/suggest/users',
+        handler: handlers.suggestUsers,
         config: {
             validate: {
-                params: {
-                    source: Joi.string().valid('keywords', 'users')
-                },
                 query: {
                     q: Joi.string()
                 }
