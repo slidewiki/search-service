@@ -1,6 +1,6 @@
 'use strict';
 
-const solrClient = require('../solrClient'),
+const solrClient = require('../lib/solrClient'),
     services = require('../../microservices/microservicesConnection');
 
 function newDeck(deckObj){
@@ -38,7 +38,7 @@ function newDeck(deckObj){
         return doc;
     });
 
-    return solrClient.addDocs(newDocs);
+    return solrClient.add(newDocs);
 }
 
 function updateDeck(deckObj){

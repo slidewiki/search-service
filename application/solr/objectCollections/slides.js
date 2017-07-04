@@ -1,8 +1,9 @@
 'use strict';
 
-const solrClient = require('../solrClient'),
-    services = require('../../microservices/microservicesConnection'),
-    helper = require('../helper');
+const solrClient = require('../lib/solrClient'),
+    services = require('../../microservices/microservicesConnection');
+
+const { stripHTML } = require('../lib/util');
 
 
 function newSlide(slideObj){
@@ -41,7 +42,7 @@ function newSlide(slideObj){
         return doc;
     });
 
-    return solrClient.addDocs(newDocs);
+    return solrClient.add(newDocs);
 }
 
 function updateSlide(slideUpdateObj){

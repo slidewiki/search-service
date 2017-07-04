@@ -1,7 +1,7 @@
 'use strict';
 
 const solr = require('solr-client'),
-    config = require('../configuration').solrConfig,
+    config = require('../../configuration').solrConfig,
     rp = require('request-promise'),
     solrUri = config.PROTOCOL + '://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
     client = solr.createClient({
@@ -13,8 +13,8 @@ const solr = require('solr-client'),
     });
 
 module.exports = {
-    addDocs: function(data){
-        let promise = new Promise( (resolve, reject) => {
+    add: function(data){
+        return new Promise( (resolve, reject) => {
             client.add(data, (err, obj) => {
                 if(err){
                     reject({
@@ -26,7 +26,6 @@ module.exports = {
                 }
             });
         });
-        return promise;
     },
 
     commit: function(){

@@ -3,7 +3,7 @@
 'use strict';
 
 const config = require('../configuration');
-const solrClient = require('../solr/solrClient');
+const solrClient = require('../solr/lib/solrClient');
 
 
 solrClient.deleteAll().then( (res) => {

@@ -1,6 +1,6 @@
 'use strict';
 
-const solrClient = require('./solrClient'),
+const solrClient = require('./lib/solrClient'),
     helper = require('./helper');
 
 module.exports = {
@@ -39,6 +39,6 @@ module.exports = {
         solrQuery.push('expand.rows=100');
         // solrQuery.push('facet=true');
 
-        return Promise.resolve(solrClient.query(solrQuery.join('&'), 'swSearch'));
+        return solrClient.query(solrQuery.join('&'), 'swSearch');
     }
 };

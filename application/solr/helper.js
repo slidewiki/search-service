@@ -1,15 +1,7 @@
 'use strict';
 
 const htmlToText = require('html-to-text');
-
-function escapeSpecialChars(s){
-    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
-        return '\\' + match;
-    })
-    .replace(/&&/g, '\\&\\&')
-    .replace(/\|\|/g, '\\|\\|')
-    .replace(/'/g, '');
-}
+const { escapeSpecialChars } = require('./lib/util');
 
 module.exports = {
     // form query params to solr params
@@ -41,14 +33,5 @@ module.exports = {
         params.sort = (params.sort) ? params.sort : 'score';
 
         return params;
-    },
-
-    // retrieve text from html
-    stripHTML: function(htmlString){
-        return htmlToText.fromString(htmlString, {
-            // ignoreImage: true,
-            // ignoreHref: true,
-            uppercaseHeadings: false
-        });
     }
 };

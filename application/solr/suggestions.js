@@ -1,15 +1,8 @@
 'use strict';
 
-const solrClient = require('./solrClient');
+const solrClient = require('./lib/solrClient');
+const { escapeSpecialChars } = require('./lib/util');
 
-function escapeSpecialChars(s){
-    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
-        return '\\' + match;
-    })
-    .replace(/&&/g, '\\&\\&')
-    .replace(/\|\|/g, '\\|\\|')
-    .replace(/'/g, '');
-}
 
 function getUserHighlight(user, userHighlight){
     let highlightText = (userHighlight.username) ? userHighlight.username[0] : user.username;

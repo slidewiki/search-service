@@ -5,7 +5,7 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 'use strict';
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
-    solrClient = require('../solr/solrClient'),
+    solrClient = require('../solr/lib/solrClient'),
     searchResults = require('../solr/searchResults'),
     suggest = require('../solr/suggestions');
 

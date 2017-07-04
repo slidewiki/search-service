@@ -1,6 +1,6 @@
 'use strict';
 
-const solrClient = require('../solrClient'),
+const solrClient = require('../lib/solrClient'),
     // microservices = require('../../microservices/microservicesConnection'),
     co = require('../../common');
 
@@ -19,7 +19,7 @@ module.exports = {
         rootDoc.kind = 'user';
 
         // console.log('new ' + JSON.stringify(rootDoc));
-        return solrClient.addDocs(rootDoc);
+        return solrClient.add(rootDoc);
     },
 
     update: function(userDbObj){
@@ -47,7 +47,7 @@ module.exports = {
                 updateObj.solr_id = 'user_' + userDbObj.targetId;
                 // console.log('update ' + JSON.stringify(updateObj));
 
-                return solrClient.addDocs(updateObj);
+                return solrClient.add(updateObj);
             }
             else{
                 return Promise.resolve();
