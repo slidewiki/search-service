@@ -1,7 +1,7 @@
 'use strict';
 
-const solrClient = require('../lib/solrClient'),
-    services = require('../../microservices/microservicesConnection');
+const solrClient = require('../lib/solrClient');
+const deckService = require('../../services/deck');
 
 function newDeck(deckObj){
     let newDocs = deckObj.revisions.map( (rev) => {
@@ -43,13 +43,15 @@ function newDeck(deckObj){
 
 function updateDeck(deckObj){
     if(!deckObj.data.hasOwnProperty('$set')){
-        return this.newDeck(deckObj.data);
+        return newDeck(deckObj.data);
     }
 
-    return services.deckServiceRequest('deck', deckObj.targetId, newDeck);
+    return deckService.get('deck', deckObj.targetId).then( (deck) => {
+        return newDeck(deck);
+    });
 }
 
-module.exports = {
+let self = module.exports = {
     newDeck: newDeck,
     updateDeck: updateDeck
 };

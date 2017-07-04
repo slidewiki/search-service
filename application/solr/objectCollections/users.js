@@ -4,7 +4,7 @@ const solrClient = require('../lib/solrClient'),
     // microservices = require('../../microservices/microservicesConnection'),
     co = require('../../common');
 
-module.exports = {
+let self = module.exports = {
 
     new: function(userDbObj){
         // form root doc

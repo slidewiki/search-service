@@ -1,7 +1,7 @@
 'use strict';
 
-const solrClient = require('../lib/solrClient'),
-    services = require('../../microservices/microservicesConnection');
+const solrClient = require('../lib/solrClient');
+const deckService = require('../../services/deck');
 
 const { stripHTML } = require('../lib/util');
 
@@ -50,10 +50,12 @@ function updateSlide(slideUpdateObj){
         return newSlide(slideUpdateObj.data);
     }
 
-    return services.deckServiceRequest('slide', slideUpdateObj.targetId, newSlide);
+    return deckService.get('slide', slideUpdateObj.targetId).then( (slide) => {
+        return newSlide(slide);
+    });
 }
 
-module.exports = {
+let self = module.exports = {
     newSlide: newSlide,
     updateSlide: updateSlide
 };
