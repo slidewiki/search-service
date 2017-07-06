@@ -31,7 +31,7 @@ module.exports = {
         solrQuery.push('rows=' + solrParams.rows);
 
         // collapse on sold_parent_id field (group by)
-        solrQuery.push('fq={!collapse field=solr_parent_id sort=\'score desc, db_revision_id desc\'}');
+        solrQuery.push('fq={!collapse field=origin sort=\'score desc, db_revision_id desc\'}');
 
         // expand docs in the same group
         solrQuery.push('expand=true');

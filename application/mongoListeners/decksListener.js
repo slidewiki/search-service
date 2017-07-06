@@ -1,7 +1,7 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    decks = require('../solr/objectCollections/decks'),
+    decks = require('../solr/collections/decks'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
 
             switch(event.operation){
                 case 'insert':
-                    decks.newDeck(event.data).catch( (err) => {
+                    decks.new(event.data).catch( (err) => {
                         console.log(err);
                     });
                     break;

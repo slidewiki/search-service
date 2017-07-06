@@ -7,9 +7,9 @@ const async = require('async');
 const ProgressBar = require('progress');
 const db = require('../database/databaseConnection');
 
-const decks = require('../solr/objectCollections/decks');
-const slides = require('../solr/objectCollections/slides');
-const users = require('../solr/objectCollections/users');
+const decks = require('../solr/collections/decks'), 
+	slides = require('../solr/collections/slides'), 
+	users = require('../solr/collections/users');
 
 function index(collection, indexFunction){
 	let limit = 50;
@@ -25,10 +25,11 @@ function index(collection, indexFunction){
 		    async.doWhilst(
 		        (callback) => {
 		            db.getAll(collection, offset, limit).then( (docs) => {
-		            	async.eachSeries(docs, (doc, callback2) => {
+		            	async.eachSeries(docs, (doc, innerCallback) => {
+
 		            		progressBar.tick();
 		            		indexFunction(doc).then( () => {
-		            			callback2();
+		            			innerCallback();
 		            		}).catch( (err) => {
 		            			console.log(err);
 
@@ -36,7 +37,7 @@ function index(collection, indexFunction){
 		            			if(--allowErrors === 0){
 		            				reject('Too many errors, please check configuration and try again');
 		            			}
-		            			callback2();
+		            			innerCallback();
 		            		});
 		            	}, () => {
 		            		offset += limit;
@@ -56,9 +57,9 @@ function index(collection, indexFunction){
 
 
 let collectionsToIndex = [
-	{ name: 'users', indexMethod: users.new },
-	{ name: 'decks', indexMethod: decks.newDeck }, 
-	{ name: 'slides', indexMethod: slides.newSlide }
+	// { name: 'users', indexMethod: users.new },
+	{ name: 'decks', indexMethod: decks.index.bind(this) }, 
+	// { name: 'slides', indexMethod: slides.newSlide }
 ];
 
 async.eachSeries(collectionsToIndex, (col, callback) => {

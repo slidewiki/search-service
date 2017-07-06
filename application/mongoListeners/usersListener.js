@@ -1,7 +1,7 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    users = require('../solr/objectCollections/users'),
+    users = require('../solr/collections/users'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
