@@ -21,6 +21,20 @@ module.exports = {
         });
     },
 
+    getHierachicalResults: function(request, reply){
+        searchResults.getHierachical(request.query).then( (results) => {
+            reply({
+                numFound: results.response.numFound,
+                page: parseInt(request.query.page || 0),
+                more: results.response.numFound > results.response.start + 50,
+                docs: results.response.docs
+            });
+        }).catch( (error) => {
+            request.log('searchResults.get', error);
+            reply(boom.badImplementation());
+        });
+    },
+
     // suggest keywords
     suggestKeywords: function(request, reply){
         suggest.findKeywords(request.query.q).then( (res) => {
@@ -31,7 +45,7 @@ module.exports = {
         });
     }, 
 
-    // suggest keywords or users
+    // suggest users
     suggestUsers: function(request, reply){
         suggest.findUsers(request.query.q).then( (res) => {
             reply(res);

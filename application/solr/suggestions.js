@@ -40,7 +40,7 @@ module.exports = {
     findKeywords: function(q){
 
         let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
-            return escapeSpecialChars(keyword);
+            return escapeSpecialChars(keyword).toLowerCase();
         });     //trim multiple spaces, split and escape
 
         // filter empty elements
