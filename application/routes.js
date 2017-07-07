@@ -79,7 +79,7 @@ module.exports = function(server) {
                         Joi.array().items(Joi.string())
                     ],
                     sort: Joi.string().valid('score', 'lastUpdate').default('score'),
-                    page: Joi.string().default(0),
+                    page: Joi.string().default(1),
                 }
             },
             tags: ['api'],

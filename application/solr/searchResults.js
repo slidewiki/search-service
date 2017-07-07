@@ -31,10 +31,11 @@ function getSolrParameters(params){
     // set sorting field
     params.sort = (params.sort) ? params.sort : 'score';
 
-    console.log('edw ' + params.page);
+    // adjust variables based on page given
     if(!_.isNil(params.page)){ 
         params.rows = 50;
-        params.start = params.page * params.rows;
+        params.page = (params.page < 1) ? 1 : params.page;
+        params.start = (params.page - 1) * params.rows;
     }
 
     return params;
@@ -81,20 +82,29 @@ module.exports = {
 
     getHierachical: function(queryParams){
         let params = getSolrParameters(queryParams);
-        console.log(params);
 
-        // build 
+        // build main query 
         let query = `q=${params.keywords} OR {!join from=parents to=solr_id score=total defType=edismax}${params.keywords}`;
 
-        //filter clauses
+        // filter clauses
         if(params.kind) { query += `&fq=kind:(${params.kind})`; }
         if(params.language) { query += `&fq=language:(${params.language})`; }    
         if(params.user) { query += `&fq=contributors:(${params.user})`; }
         if(params.tag) { query += `&fq=tags:(${params.tag})`; }
 
+        // collapse on origin field (group by)
+        query += '&fq={!collapse field=origin sort=\'db_id asc, db_revision_id desc\'}';
+        
+        // expand docs in same group
+        query += '&expand=true';
+        query += '&expand.sort=db_id asc, db_revision_id desc';
+        query += '&expand.rows=100';
+
+
         query += `&start=${params.start}&rows=${params.rows}`;
 
-        // console.log(query);
+
+        console.log(query);
 
         return solrClient.query(query, 'swSearch');
 

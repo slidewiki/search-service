@@ -25,7 +25,7 @@ module.exports = {
         searchResults.getHierachical(request.query).then( (results) => {
             reply({
                 numFound: results.response.numFound,
-                page: parseInt(request.query.page || 0),
+                page: parseInt(request.query.page || 1),
                 more: results.response.numFound > results.response.start + 50,
                 docs: results.response.docs
             });
