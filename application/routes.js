@@ -79,6 +79,8 @@ module.exports = function(server) {
                         Joi.array().items(Joi.string())
                     ],
                     sort: Joi.string().valid('score', 'lastUpdate').default('score'),
+                    expand: Joi.boolean().default(true),
+                    spellcheck: Joi.boolean().default(true),
                     page: Joi.string().default(1),
                 }
             },

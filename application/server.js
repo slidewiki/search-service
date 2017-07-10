@@ -13,7 +13,7 @@ const hapi = require('hapi'),
     usersListener = require('./mongoListeners/usersListener');
 
 //Initiate the webserver with standard or given port
-const server = new hapi.Server({ connections: {routes: {validate: { options: {convert : false}}}}});
+const server = new hapi.Server();
 
 let port = (!co.isEmpty(process.env.APPLICATION_PORT)) ? process.env.APPLICATION_PORT : 4000;
 server.connection({

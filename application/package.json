@@ -40,7 +40,7 @@
     "solr-client": "^0.6.0",
     "mongo-trigger": "^0.1.5",
     "html-to-text": "^3.1.0",
-    "request-promise": "^4.1.1",
+    "request-promise-native": "^1.0.3",
     "progress":"^1.1.8",
     "async": "^2.2.0", 
     "lodash": "^4.17.4"

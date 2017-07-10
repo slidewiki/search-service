@@ -10,7 +10,8 @@ function getSolrParameters(params){
     params.keywords = (params.keywords === '*:*') ? params.keywords : encodeURIComponent(params.keywords) ;
 
     // prepend a specific field to match keywords
-    if(params.field && params.keywords !== '*:*') { params.keywords = params.field + ':' + params.keywords; }
+    params.queryTerms = params.keywords;
+    if(params.field && params.keywords !== '*:*') { params.queryTerms = params.field + ':' + params.keywords; }
 
     // if these params are arrays then make a disjunction of their values
     if(params.kind instanceof Array) { params.kind = params.kind.join(' OR '); }
@@ -30,7 +31,7 @@ function getSolrParameters(params){
 
     // set sorting field
     params.sort = (params.sort) ? params.sort : 'score';
-
+ 
     // adjust variables based on page given
     if(!_.isNil(params.page)){ 
         params.rows = 50;
@@ -49,7 +50,7 @@ module.exports = {
         let solrQuery = [];
 
         // basic query clause
-        solrQuery.push('q=' + solrParams.keywords);
+        solrQuery.push('q=' + solrParams.queryTerms);
 
         //filter clauses
         if(solrParams.kind) { solrQuery.push('fq=kind:(' + solrParams.kind + ')'); }
@@ -84,7 +85,7 @@ module.exports = {
         let params = getSolrParameters(queryParams);
 
         // build main query 
-        let query = `q=${params.keywords} OR {!join from=parents to=solr_id score=total defType=edismax}${params.keywords}`;
+        let query = `q=${params.queryTerms} OR {!join from=parents to=solr_id score=total defType=edismax}${params.queryTerms}`;
 
         // filter clauses
         if(params.kind) { query += `&fq=kind:(${params.kind})`; }
@@ -96,17 +97,20 @@ module.exports = {
         query += '&fq={!collapse field=origin sort=\'db_id asc, db_revision_id desc\'}';
         
         // expand docs in same group
-        query += '&expand=true';
+        query += `&expand=${params.expand}`;
         query += '&expand.sort=db_id asc, db_revision_id desc';
         query += '&expand.rows=100';
 
+        // request spellcheck suggestions for the query terms
+        query += `&spellcheck=${params.spellcheck}`;
+        query += `&spellcheck.q=${params.keywords}`;
 
+        // set parameters for pagination
         query += `&start=${params.start}&rows=${params.rows}`;
 
-
-        console.log(query);
+        // console.log(query);
 
         return solrClient.query(query, 'swSearch');
-
     }
+
 };

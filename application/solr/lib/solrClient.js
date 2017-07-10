@@ -2,7 +2,7 @@
 
 const solr = require('solr-client'),
     config = require('../../configuration').solrConfig,
-    rp = require('request-promise'),
+    rp = require('request-promise-native'),
     solrUri = config.PROTOCOL + '://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
     client = solr.createClient({
         host: config.HOST,

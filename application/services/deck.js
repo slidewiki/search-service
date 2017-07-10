@@ -1,6 +1,6 @@
 'use strict';
 
-const rp = require('request-promise');
+const rp = require('request-promise-native');
 const Microservices = require('../configs/microservices.js');
 
 let self = module.exports = {

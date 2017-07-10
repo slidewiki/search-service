@@ -5,9 +5,9 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 'use strict';
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
-    solrClient = require('../solr/lib/solrClient'),
     searchResults = require('../solr/searchResults'),
-    suggest = require('../solr/suggestions');
+    suggest = require('../solr/suggestions'), 
+    { expand, parseSpellcheck } = require('../solr/lib/util');
 
 module.exports = {
 
@@ -23,10 +23,22 @@ module.exports = {
 
     getHierachicalResults: function(request, reply){
         searchResults.getHierachical(request.query).then( (results) => {
+
+            // change this, fix swagger issue with boolean
+            if(request.query.expand){
+                expand(results.response.docs, results.expanded);
+            }
+
+            let spellcheck;
+            if(request.query.spellcheck){
+                spellcheck = parseSpellcheck(results.spellcheck);
+            }
+
             reply({
                 numFound: results.response.numFound,
                 page: parseInt(request.query.page || 1),
-                more: results.response.numFound > results.response.start + 50,
+                hasMore: results.response.numFound > results.response.start + 50,
+                spellcheck: spellcheck,
                 docs: results.response.docs
             });
         }).catch( (error) => {
