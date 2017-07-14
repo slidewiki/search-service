@@ -70,6 +70,8 @@ module.exports = {
         return solrClient.query(queryString, 'swSuggestKeywords').then( (res) => {
             res = res.facet_counts.facet_fields.autocomplete;
             let docs = [];
+
+            // TODO set json.nl=arrmap, mincount=1 and facet.limit in solrconfig to avoid the code below
             let limit = 5;
             for(let i=0; i<res.length; i = i+2){
                 if(allExceptCurrent.indexOf(res[i]) > -1)
@@ -89,12 +91,12 @@ module.exports = {
 
             }
 
-            return Promise.resolve({
+            return {
                 response: {
                     numFound: docs.length,
                     docs: docs
                 }
-            });
+            };
         }).catch( (err) => {
             return Promise.reject(err);
         });

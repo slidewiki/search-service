@@ -21,7 +21,7 @@ module.exports = {
 
             switch(event.operation){
                 case 'insert':
-                    users.new(event.data).catch( (err) => {
+                    users.index(event.data).catch( (err) => {
                         console.log(err);
                     });
                     break;

@@ -4,74 +4,16 @@ const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
 const { getActiveRevision, getLanguage } = require('../lib/util');
 const _ = require('lodash');
-const slidesCollection = require('./slides');
-const async = require('async');
+// const slidesCollection = require('./slides');
+// const async = require('async');
 
-function getIndexDoc(deck){
-    // get extra metadata from deck service
-    let deepUsagePromise = deckService.getDeckDeepUsage(`${deck.db_id}-${deck.db_revision_id}`);
-    let forkGroupPromise = deckService.getForkGroup(deck.db_id);
-    let usagePromise = deckService.getDeckUsage(`${deck.db_id}-${deck.db_revision_id}`);
+function prepareDocument(dbDeck){
 
-    return Promise.all([deepUsagePromise, forkGroupPromise, usagePromise]).then( (res) => {
-        deck.isRoot = _.isEmpty(res[0]);
-        deck.usage = res[2].map( (u) => { return `${u.id}-${u.revision}`; });
-        deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
-        deck.origin = `deck_${_.min(res[1])}`;
-        deck.fork_count = res[1].length;
-        deck.active = (deck.isRoot || !_.isEmpty(deck.usage));
-        return deck;
-    });
-}
-
-function getIndexDocs(dbDeck, includeSlides){
-
-    let docs = [];
-
+    // transform deck database object
     let activeRevision = getActiveRevision(dbDeck);
-    if(!activeRevision){
-        return Promise.reject(`#Error: cannot find active revision of deck ${dbDeck._id}`); 
-    }
+    if(!activeRevision) return Promise.reject(`#Error: cannot find active revision of deck ${dbDeck._id}`);
 
-    let deck = parse(dbDeck, activeRevision);
-
-    if(!includeSlides){
-        return getIndexDoc(deck);
-    }
-
-
-    let slides = activeRevision.contentItems.filter( (item) => { return (item.kind === 'slide'); }).map( (item) => { return item.ref; });
-
-    return new Promise( (resolve, reject) => {
-        async.eachSeries(slides, (slide, callback) => {
-            deckService.getSlide(`${slide.id}-${slide.revision}`).then( (slideObj) => {
-                slidesCollection.getIndexDoc(slideObj).then( (slideDoc) => {
-                    docs.push(slideDoc);
-                    callback();
-                }).catch( (err) => {
-                    console.log(err);
-                    callback(err);
-                });
-            });
-        }, (err) => {
-            if(err){
-                reject(err);
-            }
-            
-            return getIndexDoc(deck).then( (doc) => {
-                docs.push(doc);
-                resolve(docs);
-            }).catch( (err) => {
-                reject(err);
-            });
-        });
-    });
-}
-
-// transfrom database object to solr document
-function parse(dbDeck, activeRevision){
-    
-    let doc = {
+    let deck = {
         solr_id: `deck_${dbDeck._id}`,
         db_id: dbDeck._id,
         db_revision_id: activeRevision.id,
@@ -88,29 +30,41 @@ function parse(dbDeck, activeRevision){
         revision_count: dbDeck.revisions.length
     };
 
-    // language specific fields
-    doc['title_' + doc.language] = (activeRevision.title || '');
-    doc['description_' + doc.language] = (dbDeck.description || '');
+    // add language specific fields
+    deck['title_' + deck.language] = (activeRevision.title || '');
+    deck['description_' + deck.language] = (dbDeck.description || '');
 
-    return doc;
+    // fill extra metadata from other services
+    let deepUsagePromise = deckService.getDeckDeepUsage(`${deck.db_id}-${deck.db_revision_id}`);
+    let forkGroupPromise = deckService.getForkGroup(deck.db_id);
+    let rootDecksPromise = deckService.getDeckRootDecks(`${deck.db_id}-${deck.db_revision_id}`);
+
+    return Promise.all([deepUsagePromise, forkGroupPromise, rootDecksPromise]).then( (res) => {
+        deck.isRoot = _.isEmpty(res[0]);
+        deck.usage = res[2].map( (u) => { return `${u.id}-${u.revision}`; });
+        deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
+        deck.origin = `deck_${_.min(res[1])}`;
+        deck.fork_count = res[1].length;
+        deck.active = (deck.isRoot || !_.isEmpty(deck.usage));
+        return deck;
+    });
 }
 
 let self = module.exports = {
-    index: function(dbDeck, includeSlides=true){
+    index: function(dbDeck){
         
-        return getIndexDocs(dbDeck, includeSlides).then( (docs) => {
-            // console.log(docs);
-            return solrClient.add(docs);
+        return prepareDocument(dbDeck).then( (deckDoc) => {
+            return solrClient.add(deckDoc);
         });
     }, 
 
-    updateDeck: function(deckObj){
-        if(!deckObj.data.hasOwnProperty('$set')){
-            return self.new(deckObj.data);
+    update: function(deckEvent){
+        if(!deckEvent.data.hasOwnProperty('$set')){
+            return self.index(deckEvent.data);
         }
 
-        return deckService.getDeck(deckObj.targetId).then( (deck) => {
-            return self.new(deck);
+        return deckService.getDeck(deckEvent.targetId).then( (dbDeck) => {
+            return self.index(dbDeck);
         });
     }, 
 

@@ -81,7 +81,8 @@ module.exports = function(server) {
                     sort: Joi.string().valid('score', 'lastUpdate').default('score'),
                     expand: Joi.boolean().default(true),
                     spellcheck: Joi.boolean().default(true),
-                    page: Joi.string().default(1),
+                    facets: Joi.boolean().default(false),
+                    page: Joi.number().integer().min(1).default(1)
                 }
             },
             tags: ['api'],

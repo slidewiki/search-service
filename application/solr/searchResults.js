@@ -35,7 +35,6 @@ function getSolrParameters(params){
     // adjust variables based on page given
     if(!_.isNil(params.page)){ 
         params.rows = 50;
-        params.page = (params.page < 1) ? 1 : params.page;
         params.start = (params.page - 1) * params.rows;
     }
 
@@ -104,6 +103,7 @@ module.exports = {
         // request spellcheck suggestions for the query terms
         query += `&spellcheck=${params.spellcheck}`;
         query += `&spellcheck.q=${params.keywords}`;
+        query += `&facet=${params.facets}`;
 
         // set parameters for pagination
         query += `&start=${params.start}&rows=${params.rows}`;

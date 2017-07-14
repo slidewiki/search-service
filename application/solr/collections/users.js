@@ -6,7 +6,7 @@ const solrClient = require('../lib/solrClient'),
 
 let self = module.exports = {
 
-    new: function(userDbObj){
+    index: function(userDbObj){
         // form root doc
         let rootDoc = {};
         rootDoc.solr_id = 'user_' + userDbObj._id;
@@ -25,33 +25,32 @@ let self = module.exports = {
     update: function(userDbObj){
         // update specified fields
         if(!userDbObj.data.hasOwnProperty('$set')){
-            return this.new(userDbObj.data);
+            return this.index(userDbObj.data);
+        }
+        
+        let updateObj = {};
+        for(let prop in userDbObj.data.$set){
+
+            if(prop === 'username' ||
+                prop === 'surname' ||
+                prop === 'forename' ||
+                prop === 'email' ||
+                prop === 'organization'){
+
+                updateObj[prop] = {'set': userDbObj.data.$set[prop]};
+            }
+
+        }
+
+        // change made to root doc
+        if(!co.isEmpty(updateObj)){
+            updateObj.solr_id = 'user_' + userDbObj.targetId;
+            // console.log('update ' + JSON.stringify(updateObj));
+
+            return solrClient.add(updateObj);
         }
         else{
-            let updateObj = {};
-            for(let prop in userDbObj.data.$set){
-
-                if(prop === 'username' ||
-                    prop === 'surname' ||
-                    prop === 'forename' ||
-                    prop === 'email' ||
-                    prop === 'organization'){
-
-                    updateObj[prop] = {'set': userDbObj.data.$set[prop]};
-                }
-
-            }
-
-            // change made to root doc
-            if(!co.isEmpty(updateObj)){
-                updateObj.solr_id = 'user_' + userDbObj.targetId;
-                // console.log('update ' + JSON.stringify(updateObj));
-
-                return solrClient.add(updateObj);
-            }
-            else{
-                return Promise.resolve();
-            }
+            return Promise.resolve();
         }
     }
 

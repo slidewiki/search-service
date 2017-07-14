@@ -21,12 +21,12 @@ module.exports = {
 
             switch(event.operation){
                 case 'insert':
-                    slides.newSlide(event.data).catch( (err) => {
+                    slides.index(event.data).catch( (err) => {
                         console.log(err);
                     });
                     break;
                 case 'update':
-                    slides.updateSlide(event).catch( (err) => {
+                    slides.update(event).catch( (err) => {
                         console.log(err);
                     });
                     break;

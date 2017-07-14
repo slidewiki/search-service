@@ -7,7 +7,7 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     searchResults = require('../solr/searchResults'),
     suggest = require('../solr/suggestions'), 
-    { expand, parseSpellcheck } = require('../solr/lib/util');
+    { expand, parseSpellcheck, parseFacets } = require('../solr/lib/util');
 
 module.exports = {
 
@@ -21,10 +21,9 @@ module.exports = {
         });
     },
 
+    // get hierarchical query results from SOLR
     getHierachicalResults: function(request, reply){
         searchResults.getHierachical(request.query).then( (results) => {
-
-            // change this, fix swagger issue with boolean
             if(request.query.expand){
                 expand(results.response.docs, results.expanded);
             }
@@ -34,15 +33,22 @@ module.exports = {
                 spellcheck = parseSpellcheck(results.spellcheck);
             }
 
+            let facets;
+            if(request.query.facets && results.facet_counts){
+                facets = parseFacets(results.facet_counts);
+            }
+
             reply({
                 numFound: results.response.numFound,
                 page: parseInt(request.query.page || 1),
                 hasMore: results.response.numFound > results.response.start + 50,
                 spellcheck: spellcheck,
+                facets: facets,
                 docs: results.response.docs
             });
         }).catch( (error) => {
-            request.log('searchResults.get', error);
+            console.log(error);
+            // request.log('searchResults.get', error);
             reply(boom.badImplementation());
         });
     },

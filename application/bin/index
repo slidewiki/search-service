@@ -26,7 +26,6 @@ function index(collection, indexFunction){
 		        (callback) => {
 		            db.getAll(collection, offset, limit).then( (docs) => {
 		            	async.eachSeries(docs, (doc, innerCallback) => {
-
 		            		progressBar.tick();
 		            		indexFunction(doc).then( () => {
 		            			innerCallback();
@@ -57,9 +56,9 @@ function index(collection, indexFunction){
 
 
 let collectionsToIndex = [
-	// { name: 'users', indexMethod: users.new },
-	{ name: 'decks', indexMethod: decks.index.bind(this) }, 
-	// { name: 'slides', indexMethod: slides.newSlide }
+	{ name: 'decks', indexMethod: decks.index.bind(this) },
+	{ name: 'slides', indexMethod: slides.index.bind(this) }, 
+	{ name: 'users', indexMethod: users.index.bind(this) },
 ];
 
 async.eachSeries(collectionsToIndex, (col, callback) => {

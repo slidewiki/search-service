@@ -32,16 +32,16 @@ let self = module.exports = {
         });
     },
 
-    getDeckUsage: function(deckId){
+    getDeckRootDecks: function(deckId){
         return rp.get({
-            uri: `${Microservices.deck.uri}/deck/${deckId}/usage`, 
+            uri: `${Microservices.deck.uri}/deck/${deckId}/rootDecks`, 
             json: true
         });
     },
 
-    getSlideUsage: function(slideId){
+    getSlideRootDecks: function(slideId){
         return rp.get({
-            uri: `${Microservices.deck.uri}/slide/${slideId}/usage`, 
+            uri: `${Microservices.deck.uri}/slide/${slideId}/rootDecks`, 
             json: true
         });
     },

@@ -26,6 +26,10 @@ module.exports = {
 	   return deck.revisions.find((rev) => (rev.id === deck.active));
 	},
 
+    getRevision: function(doc, revision){
+        return doc.revisions.find( (rev) => (rev.id === revision));
+    },
+
 	getLanguage(language){
         // if language field is not identified, then set text processing to english
         // (this should not happen in normal execution)
@@ -41,6 +45,8 @@ module.exports = {
 
     parseSpellcheck: function(spellcheck){
 
+        if(!spellcheck) return [];
+        
         // collations are returned in an array with the term 'collation' in odd cells
         // and the actual collations in even cells	      
         let suggestions = spellcheck.collations.map( (value, index) => {
@@ -59,5 +65,10 @@ module.exports = {
 		
        
 	    return _.uniq(suggestions);
-	}
+	}, 
+
+    parseFacets: function(facets){
+        // TODO convert facet_fields array into object (?)
+        return facets.facet_fields;
+    }
 };

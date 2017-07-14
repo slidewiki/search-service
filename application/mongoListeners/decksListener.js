@@ -21,12 +21,12 @@ module.exports = {
 
             switch(event.operation){
                 case 'insert':
-                    decks.new(event.data).catch( (err) => {
+                    decks.index(event.data).catch( (err) => {
                         console.log(err);
                     });
                     break;
                 case 'update':
-                    decks.updateDeck(event).catch( (err) => {
+                    decks.update(event).catch( (err) => {
                         console.log(err);
                     });
                     break;

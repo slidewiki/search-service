@@ -3,38 +3,39 @@
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
 
-const { stripHTML, getLanguage } = require('../lib/util');
+const { stripHTML, getLanguage, getRevision } = require('../lib/util');
 const _ = require('lodash');
+// const async = require('async');
 
-function getIndexDoc(dbSlide){
-    let slide;
-    try{
-        slide = parse(dbSlide);
-    } catch (err) {
-        return Promise.reject(err); 
-    }
+function prepareDocument(dbSlide){
 
-    let deepUsagePromise = deckService.getSlideDeepUsage(`${slide.db_id}-${slide.db_revision_id}`);
-    let usagePromise = deckService.getSlideUsage(`${slide.db_id}-${slide.db_revision_id}`);
+    return deckService.getSlideRootDecks(`${dbSlide._id}`).then( (rootDecks) => {
+        let rootDecksByRevision = _.groupBy(rootDecks, 'using');
 
-    return Promise.all([deepUsagePromise, usagePromise]).then( (res) => {
-        slide.usage = res[1].map( (u) => { return `${u.id}-${u.revision}`; });
-        slide.parents = res[0].map( (u) => { return `deck_${u.id}`});
-        slide.active = !_.isEmpty(slide.usage);
+        return deckService.getSlideDeepUsage(`${dbSlide._id}`).then( (deepUsage) => {
+            let deepUsageByRevision = _.groupBy(deepUsage, 'using');
 
-        return slide;
+            let docs = [];
+
+            // prepare solr documents for each active slide revisions
+            Object.keys(rootDecksByRevision).forEach( (revisionId) => {
+                let slideRevision = getRevision(dbSlide, parseInt(revisionId));
+                if(!slideRevision)  callback(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
+
+                let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
+                                rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
+                docs.push(revisionDoc);
+            });
+
+            return docs;
+        });
     });
-
-
-
 }
 
-// dbSlide slide metadata and only one revision
-function parse(dbSlide){
-        
-    let slideRevision = dbSlide.revisions[0];
+function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
 
-    let doc = {
+    // transform slide database object
+    let slide = {
         solr_id: 'slide_' + dbSlide._id + '-' + slideRevision.id,
         db_id: dbSlide._id,
         db_revision_id: slideRevision.id,
@@ -48,33 +49,37 @@ function parse(dbSlide){
         contributors: dbSlide.contributors.map( (contr) => { return contr.user; }),
         tags: (slideRevision.tags || []).map( (tag) => { return tag.tagName; }),
         origin: `slide_${dbSlide._id}`, 
+        usage: rootDecks.map( (u) => { return `${u.id}-${u.revision}`; }), 
+        active: !_.isEmpty(rootDecks), 
+        parents: deepUsage.map( (u) => { return `deck_${u.id}`})
     };
 
-    // language specific fields
-    doc['title_' + doc.language] = (stripHTML(slideRevision.title) || '');
-    doc['content_' + doc.language] =(stripHTML(slideRevision.content) || '');
-    doc['speakernotes_' + doc.language] = (stripHTML(slideRevision.speakernotes) || '');
+    // add language specific fields
+    slide['title_' + slide.language] = (stripHTML(slideRevision.title) || '');
+    slide['content_' + slide.language] =(stripHTML(slideRevision.content) || '');
+    slide['speakernotes_' + slide.language] = (stripHTML(slideRevision.speakernotes) || '');
 
-    return doc;
+    return slide;
 }
 
 let self = module.exports = {
+
     index: function(dbSlide){
-        return getIndexDoc(dbSlide).then( (doc) => {
-            // console.log(doc);
-            return solrClient.add(doc);
+        return prepareDocument(dbSlide).then( (slideDocs) => {
+            return solrClient.add(slideDocs);
         });
     },
 
-    getIndexDoc: getIndexDoc,
-
-    updateSlide: function(slideUpdateObj){
-        if(!slideUpdateObj.data.hasOwnProperty('$set')){
-            return newSlide(slideUpdateObj.data);
+    update: function(slideEvent){
+        if(!slideEvent.data.hasOwnProperty('$set')){
+            return self.index(slideEvent.data);
         }
 
-        return deckService.getSlide(slideUpdateObj.targetId).then( (slide) => {
-            return newSlide(slide);
+        // delete all revisions of the slide and re-index slide
+        return solrClient.delete(`origin:slide_${slideEvent.targetId}`, false).then( () => {
+            return deckService.getSlide(slideEvent.targetId).then( (slide) => {
+                return self.index(slide);
+            });
         });
     }
     
