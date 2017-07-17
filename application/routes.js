@@ -82,6 +82,7 @@ module.exports = function(server) {
                     expand: Joi.boolean().default(true),
                     spellcheck: Joi.boolean().default(true),
                     facets: Joi.boolean().default(false),
+                    facet_exclude: Joi.string().valid('kind', 'language', 'user', 'tags'),
                     page: Joi.number().integer().min(1).default(1)
                 }
             },

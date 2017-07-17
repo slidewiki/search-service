@@ -35,7 +35,7 @@ module.exports = {
     query: function(queryString, requestHandler){
         let requestUri = `${solrUri}/${requestHandler}?${queryString}`;
 
-        console.log(requestUri);
+        // console.log(requestUri);
         return rp.get({
             uri: requestUri, 
             json: true

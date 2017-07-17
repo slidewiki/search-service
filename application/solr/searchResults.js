@@ -86,11 +86,11 @@ module.exports = {
         // build main query 
         let query = `q=${params.queryTerms} OR {!join from=parents to=solr_id score=total defType=edismax}${params.queryTerms}`;
 
-        // filter clauses
-        if(params.kind) { query += `&fq=kind:(${params.kind})`; }
-        if(params.language) { query += `&fq=language:(${params.language})`; }    
-        if(params.user) { query += `&fq=contributors:(${params.user})`; }
-        if(params.tag) { query += `&fq=tags:(${params.tag})`; }
+        // tagged filter clauses, so we can exclude when faceting
+        if(params.kind) { query += `&fq={!tag=kindFilter}kind:(${params.kind})`; }
+        if(params.language) { query += `&fq={!tag=languageFilter}language:(${params.language})`; }    
+        if(params.user) { query += `&fq={!tag=usersFilter}contributors:(${params.user})`; }
+        if(params.tag) { query += `&fq={!tag=tagsFilter}tags:(${params.tag})`; }
 
         // collapse on origin field (group by)
         query += '&fq={!collapse field=origin sort=\'db_id asc, db_revision_id desc\'}';
@@ -103,8 +103,16 @@ module.exports = {
         // request spellcheck suggestions for the query terms
         query += `&spellcheck=${params.spellcheck}`;
         query += `&spellcheck.q=${params.keywords}`;
-        query += `&facet=${params.facets}`;
 
+        // enable faceting and if needed exclude filter from facet counts
+        query += `&facet=${params.facets}`;
+        if(params.facets){
+            query += `&facet.field=${(params.facet_exclude === 'kind') ? '{!ex=kindFilter}kind' : 'kind'}`;
+            query += `&facet.field=${(params.facet_exclude === 'language') ? '{!ex=languageFilter}language' : 'language'}`;
+            query += `&facet.field=${(params.facet_exclude === 'user') ? '{!ex=usersFilter}contributors' : 'contributors'}`;
+            query += `&facet.field=${(params.facet_exclude === 'tags') ? '{!ex=tagsFilter}tags' : 'tags'}`;
+        }
+        
         // set parameters for pagination
         query += `&start=${params.start}&rows=${params.rows}`;
 
