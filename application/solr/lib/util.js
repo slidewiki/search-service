@@ -47,28 +47,30 @@ module.exports = {
 
         if(!spellcheck) return [];
         
-        // collations are returned in an array with the term 'collation' in odd cells
-        // and the actual collations in even cells	      
-        let suggestions = spellcheck.collations.map( (value, index) => {
-        	return (index % 2 !== 0) ? value.collationQuery : '';
-        }).filter( (c) => { return !_.isEmpty(c); });
+        // first add solr collations in term suggestions 
+        let suggestions = spellcheck.collations.map( (item) => { return item.collation.collationQuery; });
 
-        // collations are not present, so concatenate suggestions of individual terms
+        // then concatenate suggestions of individual terms
         let termSuggestion = '';
-        for(let i=1; i<spellcheck.suggestions.length; i+=2){
-            termSuggestion += spellcheck.suggestions[i].suggestion[0].word + ' ';
-        }
+        spellcheck.suggestions.forEach( (item) => {
+            Object.keys(item).forEach( (key) => {
 
-        if(termSuggestion !== ''){
-        	suggestions.push(termSuggestion.trim());
+                let suggestionItem = item[key];
+
+                if(suggestionItem.numFound > 0){
+                    termSuggestion += suggestionItem.suggestion[0].word + ' ';
+                }
+            });
+        });
+
+        if(termSuggestion != ''){
+            suggestions.push(termSuggestion.trim());
         }
-		
        
 	    return _.uniq(suggestions);
 	}, 
 
     parseFacets: function(facets){
-        // TODO convert facet_fields array into object (?)
         return facets.facet_fields;
     }
 };
