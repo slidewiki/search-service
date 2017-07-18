@@ -19,7 +19,7 @@ module.exports = {
                 if(err){
                     reject({
                         message: err.message, 
-                        // data: data
+                        data: data
                     });
                 }else{
                     resolve(obj);

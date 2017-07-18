@@ -14,11 +14,8 @@ let self = module.exports = {
         rootDoc.username = userDbObj.username;
         rootDoc.surname = userDbObj.surname;
         rootDoc.forename = userDbObj.forename;
-        rootDoc.email = userDbObj.email;
-        rootDoc.organization = userDbObj.organization;
         rootDoc.kind = 'user';
 
-        // console.log('new ' + JSON.stringify(rootDoc));
         return solrClient.add(rootDoc);
     },
 
@@ -31,22 +28,14 @@ let self = module.exports = {
         let updateObj = {};
         for(let prop in userDbObj.data.$set){
 
-            if(prop === 'username' ||
-                prop === 'surname' ||
-                prop === 'forename' ||
-                prop === 'email' ||
-                prop === 'organization'){
-
+            if(prop === 'username' || prop === 'surname' || prop === 'forename'){
                 updateObj[prop] = {'set': userDbObj.data.$set[prop]};
             }
-
         }
 
         // change made to root doc
         if(!co.isEmpty(updateObj)){
             updateObj.solr_id = 'user_' + userDbObj.targetId;
-            // console.log('update ' + JSON.stringify(updateObj));
-
             return solrClient.add(updateObj);
         }
         else{
