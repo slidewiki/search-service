@@ -113,6 +113,9 @@ module.exports = {
             query += `&facet.field=${(params.facet_exclude === 'tags') ? '{!ex=tagsFilter}tags' : 'tags'}`;
         }
         
+        // sort by 
+        query += `&sort=${params.sort} desc`;
+
         // set parameters for pagination
         query += `&start=${params.start}&rows=${params.rows}`;
 
