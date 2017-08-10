@@ -5,9 +5,9 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 'use strict';
 
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
-    solrClient = require('../solr/solrClient'),
     searchResults = require('../solr/searchResults'),
-    suggest = require('../solr/suggestions');
+    suggest = require('../solr/suggestions'), 
+    { expand, parseSpellcheck, parseFacets } = require('../solr/lib/util');
 
 module.exports = {
 
@@ -17,6 +17,38 @@ module.exports = {
             reply(results);
         }).catch( (error) => {
             request.log('searchResults.get', error);
+            reply(boom.badImplementation());
+        });
+    },
+
+    // get hierarchical query results from SOLR
+    getHierachicalResults: function(request, reply){
+        searchResults.getHierachical(request.query).then( (results) => {
+            if(request.query.expand){
+                expand(results.response.docs, results.expanded);
+            }
+
+            let spellcheck;
+            if(request.query.spellcheck){
+                spellcheck = parseSpellcheck(results.spellcheck);
+            }
+
+            let facets;
+            if(request.query.facets && results.facet_counts){
+                facets = parseFacets(results.facet_counts);
+            }
+
+            reply({
+                numFound: results.response.numFound,
+                page: parseInt(request.query.page || 1),
+                hasMore: results.response.numFound > results.response.start + 50,
+                spellcheck: spellcheck,
+                facets: facets,
+                docs: results.response.docs
+            });
+        }).catch( (error) => {
+            console.log(error);
+            // request.log('searchResults.get', error);
             reply(boom.badImplementation());
         });
     },
@@ -31,7 +63,7 @@ module.exports = {
         });
     }, 
 
-    // suggest keywords or users
+    // suggest users
     suggestUsers: function(request, reply){
         suggest.findUsers(request.query.q).then( (res) => {
             reply(res);

@@ -48,6 +48,49 @@ module.exports = function(server) {
         }
     });
 
+    // get query results from SOLR
+    server.route({
+        method: 'GET',
+        path: '/search/v2',
+        handler: handlers.getHierachicalResults,
+        config: {
+            validate: {
+                query: {
+                    keywords: Joi.string().required(),
+                    field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
+                    kind: [
+                        Joi.string().valid('deck', 'slide', 'comment'),
+                        Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
+                    ],
+                    language: [
+                        Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'),
+                        Joi.array().items(Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'))
+                    ],
+                    // license: [
+                    //     Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
+                    //     Joi.array().items(Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'))
+                    // ],
+                    user: [
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
+                    ],
+                    tag: [
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
+                    ],
+                    sort: Joi.string().valid('score', 'lastUpdate').default('score'),
+                    expand: Joi.boolean().default(true),
+                    spellcheck: Joi.boolean().default(true),
+                    facets: Joi.boolean().default(false),
+                    facet_exclude: Joi.string().valid('kind', 'language', 'user', 'tags'),
+                    page: Joi.number().integer().min(1).default(1)
+                }
+            },
+            tags: ['api'],
+            description: 'Get SOLR search results'
+        }
+    });
+
     // suggest keywords
     server.route({
         method: 'GET',

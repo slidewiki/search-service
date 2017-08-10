@@ -1,9 +1,9 @@
 'use strict';
 
 const solr = require('solr-client'),
-    config = require('../configuration').solrConfig,
-    rp = require('request-promise'),
-    solrUri = config.PROTOCOL + '://' + config.HOST + ':' + config.PORT + config.PATH + '/' + config.CORE,
+    config = require('../../configuration').solrConfig,
+    rp = require('request-promise-native'),
+    solrUri = `${config.PROTOCOL}://${config.HOST}:${config.PORT}${config.PATH}/${config.CORE}`,
     client = solr.createClient({
         host: config.HOST,
         port: config.PORT,
@@ -13,8 +13,8 @@ const solr = require('solr-client'),
     });
 
 module.exports = {
-    addDocs: function(data){
-        let promise = new Promise( (resolve, reject) => {
+    add: function(data){
+        return new Promise( (resolve, reject) => {
             client.add(data, (err, obj) => {
                 if(err){
                     reject({
@@ -26,7 +26,6 @@ module.exports = {
                 }
             });
         });
-        return promise;
     },
 
     commit: function(){
@@ -43,13 +42,12 @@ module.exports = {
         });
     },
 
-    deleteAll: function(){
-        let requestUri = solrUri + '/update?stream.body=<delete><query>*:*</query></delete>&commit=true';
-
-        return rp.get({uri: requestUri}).then( () => {
-            return Promise.resolve('All documents were deleted from SOLR Index');
-        }).catch( (err) => {
-            return Promise.reject(err);
-        });
-    }
+    // delete solr documents by query with commit changes option
+    delete: function(query, commit=false){
+        return rp.get({
+            uri: `${solrUri}/update?stream.body=<delete><query>${query}</query></delete>&commit=${commit}`
+        }).then( () => {
+            return 'Documents successfully deleted';
+        }); 
+    }, 
 };

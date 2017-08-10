@@ -1,7 +1,7 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    slides = require('../solr/objectCollections/slides'),
+    slides = require('../solr/collections/slides'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
@@ -21,12 +21,12 @@ module.exports = {
 
             switch(event.operation){
                 case 'insert':
-                    slides.newSlide(event.data).catch( (err) => {
+                    slides.index(event.data).catch( (err) => {
                         console.log(err);
                     });
                     break;
                 case 'update':
-                    slides.updateSlide(event).catch( (err) => {
+                    slides.update(event).catch( (err) => {
                         console.log(err);
                     });
                     break;

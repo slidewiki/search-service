@@ -1,7 +1,7 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    users = require('../solr/objectCollections/users'),
+    users = require('../solr/collections/users'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
 
             switch(event.operation){
                 case 'insert':
-                    users.new(event.data).catch( (err) => {
+                    users.index(event.data).catch( (err) => {
                         console.log(err);
                     });
                     break;

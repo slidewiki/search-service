@@ -1,15 +1,8 @@
 'use strict';
 
-const solrClient = require('./solrClient');
+const solrClient = require('./lib/solrClient');
+const { escapeSpecialChars } = require('./lib/util');
 
-function escapeSpecialChars(s){
-    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
-        return '\\' + match;
-    })
-    .replace(/&&/g, '\\&\\&')
-    .replace(/\|\|/g, '\\|\\|')
-    .replace(/'/g, '');
-}
 
 function getUserHighlight(user, userHighlight){
     let highlightText = (userHighlight.username) ? userHighlight.username[0] : user.username;
@@ -47,7 +40,7 @@ module.exports = {
     findKeywords: function(q){
 
         let allKeywords = decodeURIComponent(q).replace(/ +/g, ' ').split(' ').map( (keyword) => {
-            return escapeSpecialChars(keyword);
+            return escapeSpecialChars(keyword).toLowerCase();
         });     //trim multiple spaces, split and escape
 
         // filter empty elements
@@ -77,6 +70,8 @@ module.exports = {
         return solrClient.query(queryString, 'swSuggestKeywords').then( (res) => {
             res = res.facet_counts.facet_fields.autocomplete;
             let docs = [];
+
+            // TODO set json.nl=arrmap, mincount=1 and facet.limit in solrconfig to avoid the code below
             let limit = 5;
             for(let i=0; i<res.length; i = i+2){
                 if(allExceptCurrent.indexOf(res[i]) > -1)
@@ -96,12 +91,12 @@ module.exports = {
 
             }
 
-            return Promise.resolve({
+            return {
                 response: {
                     numFound: docs.length,
                     docs: docs
                 }
-            });
+            };
         }).catch( (err) => {
             return Promise.reject(err);
         });
