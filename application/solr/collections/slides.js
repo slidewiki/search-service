@@ -20,7 +20,7 @@ function prepareDocument(dbSlide){
             // prepare solr documents for each active slide revisions
             Object.keys(rootDecksByRevision).forEach( (revisionId) => {
                 let slideRevision = getRevision(dbSlide, parseInt(revisionId));
-                if(!slideRevision)  callback(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
+                if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
 
                 let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
                                 rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
