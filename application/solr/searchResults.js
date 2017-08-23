@@ -86,7 +86,7 @@ module.exports = {
 
         // build main query 
         let query = `q=${params.queryTerms}`;
-        if(params.queryTerms != '*:*'){
+        if(params.queryTerms !== '*:*'){
             query += ` OR {!join from=parents to=solr_id score=total defType=edismax}${params.queryTerms}`;
         }
 
@@ -97,7 +97,7 @@ module.exports = {
         if(params.tag) { query += `&fq={!tag=tagsFilter}tags:(${params.tag})`; }
 
         // collapse on origin field (group by)
-        query += `&fq={!collapse field=origin sort='db_id asc, db_revision_id desc'}`;
+        query += '&fq={!collapse field=origin sort="db_id asc, db_revision_id desc"}';
         
         // expand docs in same group
         query += `&expand=${params.expand}`;
