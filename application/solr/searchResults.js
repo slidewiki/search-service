@@ -85,7 +85,10 @@ module.exports = {
         let params = getSolrParameters(queryParams);
 
         // build main query 
-        let query = `q=${params.queryTerms} OR {!join from=parents to=solr_id score=total defType=edismax}${params.queryTerms}`;
+        let query = `q=${params.queryTerms}`;
+        if(params.queryTerms != '*:*'){
+            query += ` OR {!join from=parents to=solr_id score=total defType=edismax}${params.queryTerms}`;
+        }
 
         // tagged filter clauses, so we can exclude when faceting
         if(params.kind) { query += `&fq={!tag=kindFilter}kind:(${params.kind})`; }
@@ -94,7 +97,7 @@ module.exports = {
         if(params.tag) { query += `&fq={!tag=tagsFilter}tags:(${params.tag})`; }
 
         // collapse on origin field (group by)
-        query += '&fq={!collapse field=origin sort=\'db_id asc, db_revision_id desc\'}';
+        query += `&fq={!collapse field=origin sort='db_id asc, db_revision_id desc'}`;
         
         // expand docs in same group
         query += `&expand=${params.expand}`;
