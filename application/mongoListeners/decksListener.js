@@ -30,6 +30,11 @@ module.exports = {
                         console.log(err);
                     });
                     break;
+                case 'delete':
+                    decks.archive(event.targetId).catch( (err) => {
+                        console.log(err);
+                    });
+                    break;
             }
         });
     }
