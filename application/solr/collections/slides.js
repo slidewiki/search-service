@@ -17,18 +17,26 @@ function prepareDocument(dbSlide){
 
             let docs = [];
 
-            // prepare solr documents for each active slide revision
-            Object.keys(rootDecksByRevision).forEach( (revisionId) => {
-                let slideRevision = getRevision(dbSlide, parseInt(revisionId));
-                if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
+            if(_.isEmpty(rootDecksByRevision)){
 
-                // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
-                if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
-                    let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
-                                    rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
-                    docs.push(revisionDoc);
-                }
-            });
+                // no usage found, so delete all slide revisions
+                solrClient.delete(`origin:slide_${dbSlide._id}`).catch( () => {
+                    console.log(`#Error: couldn\'t delete revisions of slide ${dbSlide._id}`);
+                });
+            } else { 
+                // prepare solr documents for each active slide revision
+                Object.keys(rootDecksByRevision).forEach( (revisionId) => {
+                    let slideRevision = getRevision(dbSlide, parseInt(revisionId));
+                    if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
+                    
+                    // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
+                    if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
+                        let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
+                                        rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
+                        docs.push(revisionDoc);
+                    }
+                });
+            }
 
             return docs;
         });
