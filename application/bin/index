@@ -6,10 +6,8 @@ const config = require('../configuration');
 const async = require('async');
 const ProgressBar = require('progress');
 const db = require('../database/databaseConnection');
-
-const decks = require('../solr/collections/decks'), 
-	slides = require('../solr/collections/slides'), 
-	users = require('../solr/collections/users');
+const users = require('../solr/collections/users');
+const decktree = require('../solr/collections/decktree');
 
 function index(collection, indexFunction){
 	let limit = 50;
@@ -56,9 +54,8 @@ function index(collection, indexFunction){
 
 
 let collectionsToIndex = [
-	{ name: 'decks', indexMethod: decks.index.bind(this) },
-	{ name: 'slides', indexMethod: slides.index.bind(this) }, 
 	{ name: 'users', indexMethod: users.index.bind(this) },
+	{ name: 'decks', indexMethod: decktree.index.bind(this) }
 ];
 
 async.eachSeries(collectionsToIndex, (col, callback) => {

@@ -17,14 +17,17 @@ function prepareDocument(dbSlide){
 
             let docs = [];
 
-            // prepare solr documents for each active slide revisions
+            // prepare solr documents for each active slide revision
             Object.keys(rootDecksByRevision).forEach( (revisionId) => {
                 let slideRevision = getRevision(dbSlide, parseInt(revisionId));
                 if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
 
-                let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
-                                rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
-                docs.push(revisionDoc);
+                // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
+                if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
+                    let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
+                                    rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
+                    docs.push(revisionDoc);
+                }
             });
 
             return docs;
@@ -45,7 +48,7 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         language: getLanguage(dbSlide.language),
         // license: dbSlide.license,
         creator: dbSlide.user,
-        revision_owner: slideRevision.user,
+        // revision_owner: slideRevision.user,
         contributors: dbSlide.contributors.map( (contr) => { return contr.user; }),
         tags: (slideRevision.tags || []).map( (tag) => { return tag.tagName; }),
         origin: `slide_${dbSlide._id}`, 

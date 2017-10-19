@@ -55,7 +55,7 @@ let self = module.exports = {
 
     getDeckTree: function(deckId){
         return rp.get({
-            uri: `${Microservices.deck.uri}/decktree/${deckId}`, 
+            uri: `${Microservices.deck.uri}/decktree/${deckId}?enrich=true`, 
             json: true
         });
     }
