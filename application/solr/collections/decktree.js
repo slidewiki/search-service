@@ -154,11 +154,6 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
     let parents = Array.from(existingDoc.parents);
     Array.prototype.push.apply(parents, _.flatten(deepUsage));
 
-    // re-indexing document, because atomic updates change boolean fields to false (?)
-    existingDoc.usage = _.uniq(usage);
-    existingDoc.parents = _.uniq(parents);
-    delete existingDoc._version_;
-
     return {
         solr_id: existingDoc.solr_id, 
         usage: { set: _.uniq(usage) }, 
@@ -224,7 +219,9 @@ let self = module.exports = {
 		
 		return deckService.getDeckTree(deck._id).then( (decktree) => {
 			return getDeckTreeDocs(decktree).then( (docs) => {
-				return solr.add(docs);
+				return solr.add(docs).then( () => { 
+                    return solr.commit();
+                });
 			});
 		});
 	}
