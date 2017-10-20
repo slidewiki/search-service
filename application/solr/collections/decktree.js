@@ -190,7 +190,9 @@ function getDeckTreeDocs(decktree){
         if(deckDoc) docs.push(deckDoc);
 
         return new Promise( (resolve, reject) => {
-            async.eachSeries(decktree.contents, (item, callback) => {
+            async.eachOfSeries(decktree.contents, (item, index, callback) => {
+                if(!item) return callback(new Error(`Invalid content item at position ${index} of decktree ${decktree.id}`));
+
                 if(item.type === 'deck') {
                     getDeckTreeDocs(item).then( (subDocs) => {
                         Array.prototype.push.apply(docs, subDocs);
