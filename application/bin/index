@@ -6,31 +6,29 @@ const config = require('../configuration');
 const async = require('async');
 const ProgressBar = require('progress');
 const db = require('../database/databaseConnection');
-
-const decks = require('../solr/collections/decks'), 
-	slides = require('../solr/collections/slides'), 
-	users = require('../solr/collections/users');
+const users = require('../solr/collections/users');
+const decktree = require('../solr/collections/decktree');
 
 function index(collection, indexFunction){
 	let limit = 50;
 	let allowErrors = 20;
 
-	return new Promise( (resolve, reject) => {
-		db.getTotalCount(collection).then( (totalCount) => {
-			console.log(`Indexing ${totalCount} ${collection}`);
+	return db.getTotalCount(collection).then( (totalCount) => {
+		console.log(`Indexing ${totalCount} ${collection}`);
 
-		    let offset = 0;
-		    let progressBar = new ProgressBar(`${collection} progress [:bar] :percent`, { total: totalCount });
+		let offset = 0;
+		let progressBar = new ProgressBar(`${collection} progress [:bar] :percent`, { total: totalCount });
+		return new Promise( (resolve, reject) => {
 
-		    async.doWhilst(
-		        (callback) => {
-		            db.getAll(collection, offset, limit).then( (docs) => {
-		            	async.eachSeries(docs, (doc, innerCallback) => {
-		            		progressBar.tick();
-		            		indexFunction(doc).then( () => {
-		            			innerCallback();
-		            		}).catch( (err) => {
-		            			console.log(err);
+			async.doWhilst(
+				(callback) => {
+					db.getAll(collection, offset, limit).then( (docs) => {
+						async.eachSeries(docs, (doc, innerCallback) => {
+							progressBar.tick();
+							indexFunction(doc).then( () => {
+								innerCallback();
+							}).catch( (err) => {
+								console.warn(err.message);
 
 		            			// if there are too many errors, reject promise
 		            			if(--allowErrors === 0){
@@ -38,27 +36,30 @@ function index(collection, indexFunction){
 		            			}
 		            			innerCallback();
 		            		});
-		            	}, () => {
-		            		offset += limit;
-		            		callback();
-		            	});
-		            }).catch( (err) => {
-		               reject(err.message);
-		            });
-		        },
-		        () => { return offset <= totalCount; },
-		        () => { resolve(`Initial index of ${collection} has been completed`); }
-		    );
-		}).catch( (err) => { reject(err.message); });
+						}, () => {
+							offset += limit;
+							callback();
+						});
+					}).catch( (err) => {
+						callback(err);
+					});
+				},
+				() => { return offset <= totalCount; },
+				(err) => { 
+					if(err)
+						reject(err);
+					else 
+						resolve(`Initial index of ${collection} has been completed`); 
+				}
+			);
+		});
 	});
-	
 }
 
 
 let collectionsToIndex = [
-	{ name: 'decks', indexMethod: decks.index.bind(this) },
-	{ name: 'slides', indexMethod: slides.index.bind(this) }, 
 	{ name: 'users', indexMethod: users.index.bind(this) },
+	{ name: 'decks', indexMethod: decktree.index.bind(this) }
 ];
 
 async.eachSeries(collectionsToIndex, (col, callback) => {

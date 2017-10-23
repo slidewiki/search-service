@@ -4,7 +4,7 @@ const htmlToText = require('html-to-text');
 const _ = require('lodash');
 const validLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'];
 
-module.exports = {
+let self = module.exports = {
 	escapeSpecialChars: function(s){
 	    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
 	        return '\\' + match;
@@ -16,14 +16,15 @@ module.exports = {
 
 	stripHTML: function(htmlString){
         return htmlToText.fromString(htmlString, {
-            // ignoreImage: true,
+            ignoreImage: true,
             // ignoreHref: true,
             uppercaseHeadings: false
         });
     }, 
 
     getActiveRevision: function(deck){
-	   return deck.revisions.find((rev) => (rev.id === deck.active));
+       let [latestRevision] = deck.revisions.slice(-1);
+       return latestRevision;
 	},
 
     getRevision: function(doc, revision){
@@ -71,6 +72,18 @@ module.exports = {
 	}, 
 
     parseFacets: function(facets){
+        // let facetsObj = {};
+        
+        // transform facets from array to object
+        // Object.keys(facets.facet_fields).forEach( (facetName) => {
+        //     facetsObj[facetName] = _.assign.apply(_, facets.facet_fields[facetName]);
+        // });
+
         return facets.facet_fields;
-    }
+    }, 
+
+    isRoot: function(deck){
+        let active = self.getActiveRevision(deck);
+        return _.isEmpty(active.usage);
+    },
 };

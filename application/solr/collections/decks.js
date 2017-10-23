@@ -24,7 +24,7 @@ function prepareDocument(dbDeck){
         // license: dbDeck.license,
         usage: activeRevision.usage.map( (u) => { return u.id + '-' + u.revision; }),
         creator: dbDeck.user,
-        revision_owner: activeRevision.user,
+        // revision_owner: activeRevision.user,
         contributors: dbDeck.contributors.map( (contr) => { return contr.user; }),
         tags: (activeRevision.tags || []).map( (tag) => { return tag.tagName; }),
         revision_count: dbDeck.revisions.length

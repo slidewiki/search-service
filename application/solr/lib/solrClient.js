@@ -12,7 +12,7 @@ const solr = require('solr-client'),
         secure: (config.PROTOCOL === 'https')
     });
 
-module.exports = {
+let self = module.exports = {
     add: function(data){
         return new Promise( (resolve, reject) => {
             client.add(data, (err, obj) => {
@@ -50,4 +50,11 @@ module.exports = {
             return 'Documents successfully deleted';
         }); 
     }, 
+
+    getById: function(type, solrId){
+        let q = `q=*:*&fq=solr_id:${type}_${solrId}&wt=json`;
+        return self.query(q, 'select').then( (result) => {
+            return result.response.docs;
+        });
+    }
 };

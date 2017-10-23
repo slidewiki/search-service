@@ -90,6 +90,9 @@ module.exports = {
             query += ` OR {!join from=parents to=solr_id score=total defType=edismax}${params.queryTerms}`;
         }
 
+        // filter only active documents
+        query += '&fq=active:true';
+
         // tagged filter clauses, so we can exclude when faceting
         if(params.kind) { query += `&fq={!tag=kindFilter}kind:(${params.kind})`; }
         if(params.language) { query += `&fq={!tag=languageFilter}language:(${params.language})`; }    
