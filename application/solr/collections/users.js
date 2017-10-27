@@ -7,6 +7,12 @@ const solrClient = require('../lib/solrClient'),
 let self = module.exports = {
 
     index: function(userDbObj){
+
+        if((userDbObj.reviewed && userDbObj.suspended) 
+                                || (userDbObj.deactivated)){
+            return Promise.resolve();
+        }
+
         // form root doc
         let rootDoc = {};
         rootDoc.solr_id = 'user_' + userDbObj._id;
@@ -26,16 +32,25 @@ let self = module.exports = {
         }
         
         let updateObj = {};
+        let suspendUser = false;
+
         for(let prop in userDbObj.data.$set){
 
             if(prop === 'username' || prop === 'surname' || prop === 'forename'){
                 updateObj[prop] = {'set': userDbObj.data.$set[prop]};
             }
+            else if((prop === 'suspended' || prop === 'deactivated') && userDbObj.data.$set[prop]){
+                suspendUser = true;
+            }
         }
 
-        // change made to root doc
-        if(!co.isEmpty(updateObj)){
-            updateObj.solr_id = 'user_' + userDbObj.targetId;
+        // user was either suspended or deactived
+        if(suspendUser){
+            return solrClient.delete(`solr_id:user_${userDbObj.targetId}`, true);
+        }
+        // update user object in solr
+        else if(!co.isEmpty(updateObj)){
+            updateObj.solr_id = `user_${userDbObj.targetId}`;
             return solrClient.add(updateObj);
         }
         else{
