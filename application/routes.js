@@ -63,8 +63,8 @@ module.exports = function(server) {
                         Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
                     ],
                     language: [
-                        Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'),
-                        Joi.array().items(Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'))
+                        Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'),
+                        Joi.array().items(Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'))
                     ],
                     // license: [
                     //     Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
