@@ -2,7 +2,7 @@
 
 const htmlToText = require('html-to-text');
 const _ = require('lodash');
-const validLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES'];
+const validLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'];
 
 let self = module.exports = {
 	escapeSpecialChars: function(s){
