@@ -15,7 +15,11 @@ function getSlideDeepUsage(path){
 }
 
 function getRootDeck(path){
-    return `${path[0].id}-${path[0].revision}`;
+    return path[0];
+}
+
+function stringify(node){
+    return `${node.id}-${node.revision}`
 }
 
 // ------------------- Functions for Deck transformation ---------------------- //
@@ -33,11 +37,11 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
         contributors: decktree.contributors,
         tags: (decktree.tags || []),
         isRoot: (decktree.path.length == 1), 
-        usage: rootDeck, 
+        usage: (rootDeck.hidden) ? [] : stringify(rootDeck), 
         parents: deepUsage, 
         origin: `deck_${_.min(forkGroup)}`, 
         fork_count: forkGroup.length, 
-        active: true
+        active: !rootDeck.hidden
     };
 
     // add language specific fields
@@ -67,8 +71,10 @@ function getDeckUpdateDoc(currentDoc, rootDeck, deepUsage, results){
 
     // merge usage and parent arrays
     let usage = Array.from(existingDoc.usage || []);
-    usage.push(rootDeck);
-
+    if(!rootDeck.hidden){
+        usage.push(stringify(rootDeck));
+    }
+    
     let parents = Array.from(existingDoc.parents || []);
     Array.prototype.push.apply(parents, _.flatten(deepUsage));
 
@@ -80,7 +86,7 @@ function getDeckUpdateDoc(currentDoc, rootDeck, deepUsage, results){
         // atomic update seem to set boolean fields to false, 
         // so we are re-sending them
         isRoot: { set: existingDoc.isRoot }, 
-        active: { set: existingDoc.active }
+        active: { set: !_.isEmpty(usage) }
     };
 }
 
@@ -131,8 +137,8 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
         contributors: slide.contributors,
         tags: slide.tags,
         origin: `slide_${slide.id}`, 
-        usage: rootDeck, 
-        active: true, 
+        usage: (rootDeck.hidden) ? [] : stringify(rootDeck), 
+        active: !rootDeck.hidden, 
         parents: deepUsage
     };
 
@@ -149,8 +155,10 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
 
     // merge usage and parent arrays
     let usage = Array.from(existingDoc.usage);
-    usage.push(rootDeck);
-
+    if(!rootDeck.hidden){
+        usage.push(stringify(rootDeck));
+    }
+    
     let parents = Array.from(existingDoc.parents);
     Array.prototype.push.apply(parents, _.flatten(deepUsage));
 
@@ -161,7 +169,7 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
 
         // atomic update seem to set boolean fields to false, 
         // so we are re-sending them         
-        active: { set: existingDoc.active }
+        active: { set: !_.isEmpty(usage) }
     };
 }
 
