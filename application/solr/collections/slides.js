@@ -46,14 +46,13 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         lastUpdate: dbSlide.lastUpdate,
         kind: 'slide',
         language: getLanguage(dbSlide.language),
-        // license: dbSlide.license,
         creator: dbSlide.user,
-        // revision_owner: slideRevision.user,
         contributors: dbSlide.contributors.map( (contr) => { return contr.user; }),
         tags: (slideRevision.tags || []).map( (tag) => { return tag.tagName; }),
         origin: `slide_${dbSlide._id}`, 
-        usage: rootDecks.map( (u) => { return `${u.id}-${u.revision}`; }), 
-        active: !_.isEmpty(rootDecks), 
+        usage: rootDecks.map( (u) => { return `${u.id}-${u.revision}`; }), // TODO: check if hidden for deck-service
+        roots: rootDecks.map( (u) => u.id),
+        active: !_.isEmpty(rootDecks), // TODO: check if hidden for deck-service
         parents: deepUsage.map( (u) => { return `deck_${u.id}`})
     };
 

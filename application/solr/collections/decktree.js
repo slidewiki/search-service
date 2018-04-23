@@ -38,7 +38,7 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
         tags: (decktree.tags || []),
         isRoot: (decktree.path.length == 1), 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
-        roots: stringify(rootDeck), 
+        roots: rootDeck.id, 
         parents: deepUsage, 
         origin: `deck_${_.min(forkGroup)}`, 
         fork_count: forkGroup.length, 
@@ -72,7 +72,7 @@ function getDeckUpdateDoc(currentDoc, rootDeck, deepUsage, results){
 
     // merge usage, roots and parent arrays
     let roots = Array.from(existingDoc.roots || []);
-    roots.push(stringify(rootDeck));
+    roots.push(rootDeck.id);
 
     let usage = Array.from(existingDoc.usage || []);
     if(!rootDeck.hidden){
@@ -144,7 +144,7 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
         tags: slide.tags,
         origin: `slide_${slide.id}`, 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck), 
-        roots: stringify(rootDeck),
+        roots: rootDeck.id,
         active: !rootDeck.hidden, 
         parents: deepUsage
     };
@@ -163,7 +163,7 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
     // merge usage, roots and parent arrays
 
     let roots = Array.from(existingDoc.roots || []);
-    roots.push(stringify(rootDeck));
+    roots.push(rootDeck.id);
 
     let usage = Array.from(existingDoc.usage || []);
     if(!rootDeck.hidden){
@@ -172,16 +172,6 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
     
     let parents = Array.from(existingDoc.parents || []);
     Array.prototype.push.apply(parents, _.flatten(deepUsage));
-console.log({
-        solr_id: existingDoc.solr_id, 
-        usage: { set: _.uniq(usage) }, 
-        roots: { set: _.uniq(roots) },
-        parents: { set: _.uniq(parents) },
-
-        // atomic update seem to set boolean fields to false, 
-        // so we are re-sending them         
-        active: { set: !_.isEmpty(usage) }
-    });
 
     return {
         solr_id: existingDoc.solr_id, 

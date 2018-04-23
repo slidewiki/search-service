@@ -4,8 +4,6 @@ const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
 const { getActiveRevision, getLanguage, isRoot } = require('../lib/util');
 const _ = require('lodash');
-// const slidesCollection = require('./slides');
-// const async = require('async');
 
 function prepareDocument(dbDeck){
 
@@ -21,10 +19,7 @@ function prepareDocument(dbDeck){
         timestamp: dbDeck.timestamp,
         lastUpdate: dbDeck.lastUpdate,
         language: getLanguage(activeRevision.language),
-        // license: dbDeck.license,
-        usage: activeRevision.usage.map( (u) => { return u.id + '-' + u.revision; }),
         creator: dbDeck.user,
-        // revision_owner: activeRevision.user,
         contributors: dbDeck.contributors.map( (contr) => { return contr.user; }),
         tags: (activeRevision.tags || []).map( (tag) => { return tag.tagName; }),
         revision_count: dbDeck.revisions.length
@@ -41,7 +36,8 @@ function prepareDocument(dbDeck){
 
     return Promise.all([deepUsagePromise, forkGroupPromise, rootDecksPromise]).then( (res) => {
         deck.isRoot = _.isEmpty(res[0]);
-        deck.usage = res[2].map( (u) => { return `${u.id}-${u.revision}`; });
+        deck.usage = res[2].map( (u) => { return `${u.id}-${u.revision}`; });   // TODO: remove hidden from deck service
+        deck.roots = res[2].map( (u) => u.id);
         deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
         deck.origin = `deck_${_.min(res[1])}`;
         deck.fork_count = res[1].length;
@@ -50,17 +46,37 @@ function prepareDocument(dbDeck){
     });
 }
 
-function prepareUpdateDocuments(deckId, action){
-    let solrDeckId = `deck_${deckId}`;
-    return solrClient.getByUsage(solrDeckId).then( (response) => {
+function updateDeckVisibility(deckId, action, start, rows){
+    return solrClient.getDeckContents(deckId, start, rows).then( (response) => {
+        if(start + rows < response.numFound)
+            updateDeckVisibility(deckId, action, start + rows, rows);
+
         return response.docs.map( (doc) => {
+            let usage = (doc.usage || []);
+
+            if (action === 'show') {
+                usage.push(deckId.toString());
+            } else {
+                usage = usage.filter( (item) => !item.startsWith(deckId.toString()));
+            }
+            usage = _.uniq(usage);
+
             return {
                 solr_id: doc.solr_id, 
-                usage: { [action]: solrDeckId },
-                active: (action === 'add') ? true : false
+                usage: { set: usage },
+                active: !_.isEmpty(usage)
             };
-        })
-    });
+        });
+    }).then( (docs) => solrClient.add(docs));
+}
+
+function checkDeckVisibility(docs, deck){
+    if (!_.isEmpty(docs) && docs[0].active === true && deck.hidden === true) {
+        return 'hide';
+    } else if (!_.isEmpty(docs) && docs[0].active === false && deck.hidden === false) {
+        return 'show';
+    }
+    return;
 }
 
 let self = module.exports = {
@@ -69,20 +85,10 @@ let self = module.exports = {
         if(!isRoot(dbDeck)) {
             updateContentsPromise = Promise.resolve();
         } else {
-            updateContentsPromise = solrClient.getById('deck', `${dbDeck._id}`).then( (solrDocs) => {
-
-                // hide deck's contents
-                if (!_.isEmpty(solrDocs) && solrDocs[0].active === true && dbDeck.hidden === true) {
-                    return prepareUpdateDocuments(dbDeck._id, 'remove').then( (docs) => {
-                        return solrClient.add(docs);
-                    });
-
-                // show deck's contents
-                } else if (!_.isEmpty(solrDocs) && solrDocs[0].active === false && dbDeck.hidden === false) {
-                    return prepareUpdateDocuments(dbDeck._id, 'add').then( (docs) => {
-                        return solrClient.add(docs);
-                    });
-                }   
+            updateContentsPromise = solrClient.getById('deck', dbDeck._id).then( (docs) => {
+                let action = checkDeckVisibility(docs, dbDeck);
+                let start = 0, rows = 50;
+                return updateDeckVisibility(dbDeck._id, action, start, rows); 
             });
         }
 
