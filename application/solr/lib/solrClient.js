@@ -56,5 +56,12 @@ let self = module.exports = {
         return self.query(q, 'select').then( (result) => {
             return result.response.docs;
         });
+    }, 
+
+    getByUsage: function(solrDeckId){
+        let q = `q=*:*&fq=solr_id:${solrDeckId}&fl=solr_id&wt=json`;
+        return self.query(q, 'select').then( (result) => {
+            return result.response;
+        });
     }
 };

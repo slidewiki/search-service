@@ -2,7 +2,7 @@
 
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
-const { getActiveRevision, getLanguage } = require('../lib/util');
+const { getActiveRevision, getLanguage, isRoot } = require('../lib/util');
 const _ = require('lodash');
 // const slidesCollection = require('./slides');
 // const async = require('async');
@@ -45,17 +45,52 @@ function prepareDocument(dbDeck){
         deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
         deck.origin = `deck_${_.min(res[1])}`;
         deck.fork_count = res[1].length;
-        deck.active = (deck.isRoot || !_.isEmpty(deck.usage));
+        deck.active = (deck.isRoot || !_.isEmpty(deck.usage)) && !dbDeck.hidden;
         return deck;
+    });
+}
+
+function prepareUpdateDocuments(deckId, action){
+    let solrDeckId = `deck_${deckId}`;
+    return solrClient.getByUsage(solrDeckId).then( (response) => {
+        return response.docs.map( (doc) => {
+            return {
+                solr_id: doc.solr_id, 
+                usage: { [action]: solrDeckId },
+                active: (action === 'add') ? true : false
+            };
+        })
     });
 }
 
 let self = module.exports = {
     index: function(dbDeck){
-        
-        return prepareDocument(dbDeck).then( (deckDoc) => {
+        let updateContentsPromise;
+        if(!isRoot(dbDeck)) {
+            updateContentsPromise = Promise.resolve();
+        } else {
+            updateContentsPromise = solrClient.getById('deck', `${dbDeck._id}`).then( (solrDocs) => {
+
+                // hide deck's contents
+                if (!_.isEmpty(solrDocs) && solrDocs[0].active === true && dbDeck.hidden === true) {
+                    return prepareUpdateDocuments(dbDeck._id, 'remove').then( (docs) => {
+                        return solrClient.add(docs);
+                    });
+
+                // show deck's contents
+                } else if (!_.isEmpty(solrDocs) && solrDocs[0].active === false && dbDeck.hidden === false) {
+                    return prepareUpdateDocuments(dbDeck._id, 'add').then( (docs) => {
+                        return solrClient.add(docs);
+                    });
+                }   
+            });
+        }
+
+        let updateDeckPromise = prepareDocument(dbDeck).then( (deckDoc) => {
             return solrClient.add(deckDoc);
         });
+        
+        return Promise.all([updateDeckPromise, updateContentsPromise]);
     }, 
 
     update: function(deckEvent){
