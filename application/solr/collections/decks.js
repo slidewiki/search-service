@@ -35,13 +35,14 @@ function prepareDocument(dbDeck){
     let rootDecksPromise = deckService.getDeckRootDecks(`${deck.db_id}-${deck.db_revision_id}`);
 
     return Promise.all([deepUsagePromise, forkGroupPromise, rootDecksPromise]).then( (res) => {
+
         deck.isRoot = _.isEmpty(res[0]);
-        deck.usage = res[2].map( (u) => { return `${u.id}-${u.revision}`; });   // TODO: remove hidden from deck service
+        deck.usage = res[2].filter( (deck) => !deck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
         deck.roots = res[2].map( (u) => u.id);
         deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
         deck.origin = `deck_${_.min(res[1])}`;
         deck.fork_count = res[1].length;
-        deck.active = (deck.isRoot || !_.isEmpty(deck.usage)) && !dbDeck.hidden;
+        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage)
         return deck;
     });
 }
@@ -87,6 +88,8 @@ let self = module.exports = {
         } else {
             updateContentsPromise = solrClient.getById('deck', dbDeck._id).then( (docs) => {
                 let action = checkDeckVisibility(docs, dbDeck);
+                if(!action) return Promise.resolve();
+
                 let start = 0, rows = 50;
                 return updateDeckVisibility(dbDeck._id, action, start, rows); 
             });
