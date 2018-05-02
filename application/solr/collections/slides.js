@@ -36,6 +36,7 @@ function prepareDocument(dbSlide){
 }
 
 function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
+    let visibleRootDecks = rootDecks.filter( (deck) => !deck.hidden);
 
     // transform slide database object
     let slide = {
@@ -46,14 +47,13 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         lastUpdate: dbSlide.lastUpdate,
         kind: 'slide',
         language: getLanguage(dbSlide.language),
-        // license: dbSlide.license,
         creator: dbSlide.user,
-        // revision_owner: slideRevision.user,
         contributors: dbSlide.contributors.map( (contr) => { return contr.user; }),
         tags: (slideRevision.tags || []).map( (tag) => { return tag.tagName; }),
         origin: `slide_${dbSlide._id}`, 
-        usage: rootDecks.map( (u) => { return `${u.id}-${u.revision}`; }), 
-        active: !_.isEmpty(rootDecks), 
+        usage: visibleRootDecks.map( (u) => { return `${u.id}-${u.revision}`; }),
+        roots: rootDecks.map( (u) => u.id),
+        active: !_.isEmpty(visibleRootDecks),
         parents: deepUsage.map( (u) => { return `deck_${u.id}`})
     };
 

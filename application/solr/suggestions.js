@@ -2,7 +2,7 @@
 
 const solrClient = require('./lib/solrClient');
 const { escapeSpecialChars } = require('./lib/util');
-
+const querystring = require('querystring');
 
 function getUserHighlight(user, userHighlight){
     let highlightText = (userHighlight.username) ? userHighlight.username[0] : user.username;
@@ -62,12 +62,14 @@ module.exports = {
             prefix = q.substring(0, index) + ' ';
         }
 
-        let queryString =
-                'q=' + encodeURIComponent(paramQ) +
-                '&facet=true' +
-                '&facet.prefix=' + encodeURIComponent(curKeyword);
+        let query = {
+            q: paramQ, 
+            active: true, 
+            facet: true, 
+            'facet.prefix': curKeyword
+        };
 
-        return solrClient.query(queryString, 'swSuggestKeywords').then( (res) => {
+        return solrClient.query(querystring.stringify(query), 'swSuggestKeywords').then( (res) => {
             res = res.facet_counts.facet_fields.autocomplete;
             let docs = [];
 

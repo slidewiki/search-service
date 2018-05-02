@@ -2,10 +2,8 @@
 
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
-const { getActiveRevision, getLanguage } = require('../lib/util');
+const { getActiveRevision, getLanguage, isRoot } = require('../lib/util');
 const _ = require('lodash');
-// const slidesCollection = require('./slides');
-// const async = require('async');
 
 function prepareDocument(dbDeck){
 
@@ -21,10 +19,7 @@ function prepareDocument(dbDeck){
         timestamp: dbDeck.timestamp,
         lastUpdate: dbDeck.lastUpdate,
         language: getLanguage(activeRevision.language),
-        // license: dbDeck.license,
-        usage: activeRevision.usage.map( (u) => { return u.id + '-' + u.revision; }),
         creator: dbDeck.user,
-        // revision_owner: activeRevision.user,
         contributors: dbDeck.contributors.map( (contr) => { return contr.user; }),
         tags: (activeRevision.tags || []).map( (tag) => { return tag.tagName; }),
         revision_count: dbDeck.revisions.length
@@ -40,22 +35,71 @@ function prepareDocument(dbDeck){
     let rootDecksPromise = deckService.getDeckRootDecks(`${deck.db_id}-${deck.db_revision_id}`);
 
     return Promise.all([deepUsagePromise, forkGroupPromise, rootDecksPromise]).then( (res) => {
+
         deck.isRoot = _.isEmpty(res[0]);
-        deck.usage = res[2].map( (u) => { return `${u.id}-${u.revision}`; });
+        deck.usage = res[2].filter( (deck) => !deck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
+        deck.roots = res[2].map( (u) => u.id);
         deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
         deck.origin = `deck_${_.min(res[1])}`;
         deck.fork_count = res[1].length;
-        deck.active = (deck.isRoot || !_.isEmpty(deck.usage));
+        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage)
         return deck;
     });
 }
 
+function updateDeckVisibility(deckId, action, start, rows){
+    return solrClient.getDeckContents(deckId, start, rows).then( (response) => {
+        if(start + rows < response.numFound)
+            updateDeckVisibility(deckId, action, start + rows, rows);
+
+        return response.docs.map( (doc) => {
+            let usage = (doc.usage || []);
+
+            if (action === 'show') {
+                usage.push(deckId.toString());
+            } else {
+                usage = usage.filter( (item) => !item.startsWith(deckId.toString()));
+            }
+            usage = _.uniq(usage);
+
+            return {
+                solr_id: doc.solr_id, 
+                usage: { set: usage },
+                active: !_.isEmpty(usage)
+            };
+        });
+    }).then( (docs) => solrClient.add(docs));
+}
+
+function checkDeckVisibility(docs, deck){
+    if (!_.isEmpty(docs) && docs[0].active === true && deck.hidden === true) {
+        return 'hide';
+    } else if (!_.isEmpty(docs) && docs[0].active === false && deck.hidden === false) {
+        return 'show';
+    }
+    return;
+}
+
 let self = module.exports = {
     index: function(dbDeck){
-        
-        return prepareDocument(dbDeck).then( (deckDoc) => {
+        let updateContentsPromise;
+        if(!isRoot(dbDeck)) {
+            updateContentsPromise = Promise.resolve();
+        } else {
+            updateContentsPromise = solrClient.getById('deck', dbDeck._id).then( (docs) => {
+                let action = checkDeckVisibility(docs, dbDeck);
+                if(!action) return Promise.resolve();
+
+                let start = 0, rows = 50;
+                return updateDeckVisibility(dbDeck._id, action, start, rows); 
+            });
+        }
+
+        let updateDeckPromise = prepareDocument(dbDeck).then( (deckDoc) => {
             return solrClient.add(deckDoc);
         });
+        
+        return Promise.all([updateDeckPromise, updateContentsPromise]);
     }, 
 
     update: function(deckEvent){

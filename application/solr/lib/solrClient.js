@@ -11,6 +11,7 @@ const solr = require('solr-client'),
         path: config.PATH,
         secure: (config.PROTOCOL === 'https')
     });
+const querystring = require('querystring');
 
 let self = module.exports = {
     add: function(data){
@@ -52,9 +53,31 @@ let self = module.exports = {
     }, 
 
     getById: function(type, solrId){
-        let q = `q=*:*&fq=solr_id:${type}_${solrId}&wt=json`;
-        return self.query(q, 'select').then( (result) => {
+        let query = {
+            q: '*:*', 
+            fq: `solr_id:${type}_${solrId}`, 
+            wt: 'json'
+        };
+
+        return self.query(querystring.stringify(query), 'select').then( (result) => {
             return result.response.docs;
+        });
+    }, 
+
+    getDeckContents: function(deckId, start, rows){
+        let query = {
+            q: '*:*', 
+            fq: [
+                `roots:${deckId}`,
+                `!solr_id:deck_${deckId}`
+            ], 
+            fl: `solr_id,usage`,
+            start: start, 
+            rows: rows,
+            wt: 'json'
+        };
+        return self.query(querystring.stringify(query), 'select').then( (result) => {
+            return result.response;
         });
     }
 };

@@ -15,7 +15,11 @@ function getSlideDeepUsage(path){
 }
 
 function getRootDeck(path){
-    return `${path[0].id}-${path[0].revision}`;
+    return path[0];
+}
+
+function stringify(node){
+    return `${node.id}-${node.revision}`
 }
 
 // ------------------- Functions for Deck transformation ---------------------- //
@@ -33,11 +37,12 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
         contributors: decktree.contributors,
         tags: (decktree.tags || []),
         isRoot: (decktree.path.length == 1), 
-        usage: rootDeck, 
+        usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
+        roots: rootDeck.id, 
         parents: deepUsage, 
         origin: `deck_${_.min(forkGroup)}`, 
         fork_count: forkGroup.length, 
-        active: true
+        active: !rootDeck.hidden
     };
 
     // add language specific fields
@@ -65,22 +70,29 @@ function getDeckAction(currentDoc, results){
 function getDeckUpdateDoc(currentDoc, rootDeck, deepUsage, results){
     let existingDoc = results[0];
 
-    // merge usage and parent arrays
-    let usage = Array.from(existingDoc.usage || []);
-    usage.push(rootDeck);
+    // merge usage, roots and parent arrays
+    let roots = Array.from(existingDoc.roots || []);
+    roots.push(rootDeck.id);
 
+    let usage = Array.from(existingDoc.usage || []);
+    if(!rootDeck.hidden){
+        usage.push(stringify(rootDeck));
+
+    }
+    
     let parents = Array.from(existingDoc.parents || []);
     Array.prototype.push.apply(parents, _.flatten(deepUsage));
 
     return {
         solr_id: existingDoc.solr_id, 
         usage: { set: _.uniq(usage) }, 
+        roots: { set: _.uniq(roots) },
         parents: { set: _.uniq(parents) }, 
 
         // atomic update seem to set boolean fields to false, 
         // so we are re-sending them
         isRoot: { set: existingDoc.isRoot }, 
-        active: { set: existingDoc.active }
+        active: { set: !_.isEmpty(usage) }
     };
 }
 
@@ -131,8 +143,9 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
         contributors: slide.contributors,
         tags: slide.tags,
         origin: `slide_${slide.id}`, 
-        usage: rootDeck, 
-        active: true, 
+        usage: (rootDeck.hidden) ? [] : stringify(rootDeck), 
+        roots: rootDeck.id,
+        active: !rootDeck.hidden, 
         parents: deepUsage
     };
 
@@ -147,21 +160,28 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
 function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
     let existingDoc = results[0];
 
-    // merge usage and parent arrays
-    let usage = Array.from(existingDoc.usage);
-    usage.push(rootDeck);
+    // merge usage, roots and parent arrays
 
-    let parents = Array.from(existingDoc.parents);
+    let roots = Array.from(existingDoc.roots || []);
+    roots.push(rootDeck.id);
+
+    let usage = Array.from(existingDoc.usage || []);
+    if(!rootDeck.hidden){
+        usage.push(stringify(rootDeck));
+    }
+    
+    let parents = Array.from(existingDoc.parents || []);
     Array.prototype.push.apply(parents, _.flatten(deepUsage));
 
     return {
         solr_id: existingDoc.solr_id, 
         usage: { set: _.uniq(usage) }, 
+        roots: { set: _.uniq(roots) },
         parents: { set: _.uniq(parents) },
 
         // atomic update seem to set boolean fields to false, 
         // so we are re-sending them         
-        active: { set: existingDoc.active }
+        active: { set: !_.isEmpty(usage) }
     };
 }
 
