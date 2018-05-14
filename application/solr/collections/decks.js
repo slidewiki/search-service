@@ -47,16 +47,19 @@ function prepareDocument(dbDeck){
     });
 }
 
-function updateDeckVisibility(deckId, action, start, rows){
+function updateDeckVisibility(deck, action, start, rows){
+    let deckId = deck._id;
+    let activeRevision = getActiveRevision(deck);
+
     return solrClient.getDeckContents(deckId, start, rows).then( (response) => {
         if(start + rows < response.numFound)
-            updateDeckVisibility(deckId, action, start + rows, rows);
+            updateDeckVisibility(deck, action, start + rows, rows);
 
         return response.docs.map( (doc) => {
             let usage = (doc.usage || []);
 
             if (action === 'show') {
-                usage.push(deckId.toString());
+                usage.push(`${deckId}-${activeRevision.id}`);
             } else {
                 usage = usage.filter( (item) => !item.startsWith(deckId.toString()));
             }
@@ -91,7 +94,7 @@ let self = module.exports = {
                 if(!action) return Promise.resolve();
 
                 let start = 0, rows = 50;
-                return updateDeckVisibility(dbDeck._id, action, start, rows); 
+                return updateDeckVisibility(dbDeck, action, start, rows); 
             });
         }
 
