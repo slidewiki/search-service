@@ -31,10 +31,15 @@ let self = module.exports = {
         return doc.revisions.find( (rev) => (rev.id === revision));
     },
 
-	getLanguage(language){
-        // if language field is not identified, then set text processing to english
-        // (this should not happen in normal execution)
-        return (_.includes(validLanguages, language) ? language : 'en_GB');
+	getLanguageCodes(language){
+        return {
+            // language field indexed to SOLR
+            // if 'en' is given (all slides), set proper code for english
+            short: (language === 'en') ? 'en_GB' : language,
+
+            // if language is not supported with a stemmer, then set text processing to general
+            suffix: (_.includes(validLanguages, language) ? language : 'general'),
+        };
 	}, 
 
     expand: function(docs, expanded){
