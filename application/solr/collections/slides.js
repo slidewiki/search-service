@@ -3,7 +3,7 @@
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
 
-const { stripHTML, getLanguage, getRevision } = require('../lib/util');
+const { stripHTML, getLanguageCodes, getRevision } = require('../lib/util');
 const _ = require('lodash');
 // const async = require('async');
 
@@ -37,6 +37,7 @@ function prepareDocument(dbSlide){
 
 function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
     let visibleRootDecks = rootDecks.filter( (deck) => !deck.hidden);
+    let langCodes = getLanguageCodes(dbSlide.language);
 
     // transform slide database object
     let slide = {
@@ -46,7 +47,7 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         timestamp: dbSlide.timestamp,
         lastUpdate: dbSlide.lastUpdate,
         kind: 'slide',
-        language: getLanguage(dbSlide.language),
+        language: langCodes.short,
         creator: dbSlide.user,
         contributors: dbSlide.contributors.map( (contr) => { return contr.user; }),
         tags: (slideRevision.tags || []).map( (tag) => { return tag.tagName; }),
@@ -54,13 +55,13 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         usage: visibleRootDecks.map( (u) => { return `${u.id}-${u.revision}`; }),
         roots: rootDecks.map( (u) => u.id),
         active: !_.isEmpty(visibleRootDecks),
-        parents: deepUsage.map( (u) => { return `deck_${u.id}`})
+        parents: deepUsage.map( (u) => { return `deck_${u.id}`; })
     };
 
     // add language specific fields
-    slide['title_' + slide.language] = (stripHTML(slideRevision.title) || '');
-    slide['content_' + slide.language] =(stripHTML(slideRevision.content) || '');
-    slide['speakernotes_' + slide.language] = (stripHTML(slideRevision.speakernotes) || '');
+    slide['title_' + langCodes.suffix] = (stripHTML(slideRevision.title) || '');
+    slide['content_' + langCodes.suffix] =(stripHTML(slideRevision.content) || '');
+    slide['speakernotes_' + langCodes.suffix] = (stripHTML(slideRevision.speakernotes) || '');
 
     return slide;
 }

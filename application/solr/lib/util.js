@@ -2,19 +2,19 @@
 
 const htmlToText = require('html-to-text');
 const _ = require('lodash');
-const validLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'];
+const stemmerSupportedLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'];
 
 let self = module.exports = {
-	escapeSpecialChars: function(s){
+    escapeSpecialChars: function(s){
 	    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
 	        return '\\' + match;
 	    })
 	    .replace(/&&/g, '\\&\\&')
 	    .replace(/\|\|/g, '\\|\\|')
 	    .replace(/'/g, '');
-	}, 
+    }, 
 
-	stripHTML: function(htmlString){
+    stripHTML: function(htmlString){
         return htmlToText.fromString(htmlString, {
             ignoreImage: true,
             // ignoreHref: true,
@@ -23,19 +23,26 @@ let self = module.exports = {
     }, 
 
     getActiveRevision: function(deck){
-       let [latestRevision] = deck.revisions.slice(-1);
-       return latestRevision;
-	},
+        let [latestRevision] = deck.revisions.slice(-1);
+        return latestRevision;
+    },
 
     getRevision: function(doc, revision){
         return doc.revisions.find( (rev) => (rev.id === revision));
     },
 
-	getLanguage(language){
-        // if language field is not identified, then set text processing to english
-        // (this should not happen in normal execution)
-        return (_.includes(validLanguages, language) ? language : 'en_GB');
-	}, 
+    getLanguageCodes(language){
+        // language field indexed to SOLR
+        // if 'en' or 'EN' is given (all slides), set proper code for english
+        let languageCode = (language === 'en' || language === 'EN') ? 'en_GB' : language;
+
+        return {
+            short: languageCode,
+
+            // if language is not supported with a stemmer, then set text processing to general
+            suffix: (_.includes(stemmerSupportedLanguages, languageCode) ? languageCode : 'general'),
+        };
+    }, 
 
     expand: function(docs, expanded){
         return docs.map( (doc) => {
@@ -64,12 +71,12 @@ let self = module.exports = {
             });
         });
 
-        if(termSuggestion != ''){
+        if(termSuggestion !== ''){
             suggestions.push(termSuggestion.trim());
         }
        
 	    return _.uniq(suggestions);
-	}, 
+    }, 
 
     parseFacets: function(facets){
         // let facetsObj = {};

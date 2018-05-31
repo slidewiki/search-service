@@ -10,72 +10,68 @@ const users = require('../solr/collections/users');
 const decktree = require('../solr/collections/decktree');
 
 function index(collection, indexFunction){
-	let limit = 50;
-	let allowErrors = 20;
+    let limit = 50;
+    let allowErrors = 20;
 
-	return db.getTotalCount(collection).then( (totalCount) => {
-		console.log(`Indexing ${totalCount} ${collection}`);
+    return db.getTotalCount(collection).then( (totalCount) => {
+        let offset = 0;
+        let progressBar = new ProgressBar(`Indexed :current out of :total ${collection} (ETA: :eta sec) [:bar] :percent`, { total: totalCount });
+        return new Promise( (resolve, reject) => {
 
-		let offset = 0;
-		let progressBar = new ProgressBar(`${collection} progress [:bar] :percent`, { total: totalCount });
-		return new Promise( (resolve, reject) => {
+            async.doWhilst(
+                (callback) => {
+                    db.getAll(collection, offset, limit).then( (docs) => {
+                        async.eachSeries(docs, (doc, innerCallback) => {
+                            progressBar.tick();
+                            indexFunction(doc).then( () => {
+                                innerCallback();
+                            }).catch( (err) => {
+                                console.warn(err.message);
 
-			async.doWhilst(
-				(callback) => {
-					db.getAll(collection, offset, limit).then( (docs) => {
-						async.eachSeries(docs, (doc, innerCallback) => {
-							progressBar.tick();
-							indexFunction(doc).then( () => {
-								innerCallback();
-							}).catch( (err) => {
-								console.warn(err.message);
-
-		            			// if there are too many errors, reject promise
-		            			if(--allowErrors === 0){
-		            				reject('Too many errors, please check configuration and try again');
-		            			}
-		            			innerCallback();
-		            		});
-						}, () => {
-							offset += limit;
-							callback();
-						});
-					}).catch( (err) => {
-						callback(err);
-					});
-				},
-				() => { return offset <= totalCount; },
-				(err) => { 
-					if(err)
-						reject(err);
-					else 
-						resolve(`Initial index of ${collection} has been completed`); 
-				}
-			);
-		});
-	});
+                                // if there are too many errors, reject promise
+                                if(--allowErrors === 0){
+                                    reject('Too many errors, please check configuration and try again');
+                                }
+                                innerCallback();
+                            });
+                        }, () => {
+                            offset += limit;
+                            callback();
+                        });
+                    }).catch( (err) => {
+                        callback(err);
+                    });
+                },
+                () => { return offset <= totalCount; },
+                (err) => { 
+                    if(err)
+                        return reject(err);
+                    resolve();
+                }
+            );
+        });
+    });
 }
 
 
 let collectionsToIndex = [
-	{ name: 'users', indexMethod: users.index.bind(this) },
-	{ name: 'decks', indexMethod: decktree.index.bind(this) }
+    { name: 'users', indexMethod: users.index.bind(this) },
+    { name: 'decks', indexMethod: decktree.index.bind(this) }
 ];
 
 async.eachSeries(collectionsToIndex, (col, callback) => {
-	console.log();
-	index(col.name, col.indexMethod).then( (res) => {
-		console.log(res);
-		callback();
-	}).catch( (err) => {
-		callback(err);
-	});
+    console.log();
+    index(col.name, col.indexMethod).then( (res) => {
+        callback();
+    }).catch( (err) => {
+        callback(err);
+    });
 }, (err) => {
-	if(err){
-		console.log(err);
-		process.exit(-1);
-	}
+    if(err){
+        console.log(err);
+        process.exit(-1);
+    }
 
-	console.log('Initial index has been successfully completed');
-	process.exit(0);
+    console.log('Initial index has been successfully completed');
+    process.exit(0);
 });

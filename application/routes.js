@@ -44,7 +44,7 @@ module.exports = function(server) {
                 }
             },
             tags: ['api'],
-            description: 'Get SOLR search results'
+            description: 'Get SOLR search results #DEPRECATED'
         }
     });
 
@@ -63,13 +63,9 @@ module.exports = function(server) {
                         Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
                     ],
                     language: [
-                        Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'),
-                        Joi.array().items(Joi.string().valid('en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'))
+                        Joi.string(),
+                        Joi.array().items(Joi.string())
                     ],
-                    // license: [
-                    //     Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'),
-                    //     Joi.array().items(Joi.string().valid('CC0', 'CC BY', 'CC BY-SA'))
-                    // ],
                     user: [
                         Joi.string(),
                         Joi.array().items(Joi.string())

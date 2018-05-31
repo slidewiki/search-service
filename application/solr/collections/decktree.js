@@ -19,12 +19,14 @@ function getRootDeck(path){
 }
 
 function stringify(node){
-    return `${node.id}-${node.revision}`
+    return `${node.id}-${node.revision}`;
 }
 
 // ------------------- Functions for Deck transformation ---------------------- //
 
 function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
+    let langCodes = util.getLanguageCodes(decktree.language);
+
     let deckDoc = {
         solr_id: `deck_${decktree.id}`,
         db_id: decktree.id,
@@ -32,11 +34,11 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
         kind: 'deck',
         timestamp: decktree.timestamp,
         lastUpdate: decktree.lastUpdate,
-        language: util.getLanguage(decktree.language),
+        language: langCodes.short,
         creator: decktree.owner,
         contributors: decktree.contributors,
         tags: (decktree.tags || []),
-        isRoot: (decktree.path.length == 1), 
+        isRoot: (decktree.path.length === 1), 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
         roots: rootDeck.id, 
         parents: deepUsage, 
@@ -46,8 +48,8 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
     };
 
     // add language specific fields
-    deckDoc['title_' + deckDoc.language] = (decktree.title || '');
-    deckDoc['description_' + deckDoc.language] = (decktree.description || '');
+    deckDoc['title_' + langCodes.suffix] = (decktree.title || '');
+    deckDoc['description_' + langCodes.suffix] = (decktree.description || '');
     return deckDoc;
 }
 
@@ -131,6 +133,9 @@ function getSlideAction(slide, results){
 }
 
 function getSlideAddDoc(slide, rootDeck, deepUsage){
+
+    let langCodes = util.getLanguageCodes(slide.language);
+
     let slideDoc = {
         solr_id: `slide_${slide.id}-${slide.revisionId}`,
         db_id: slide.id,
@@ -138,7 +143,7 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
         timestamp: slide.timestamp,
         lastUpdate: slide.lastUpdate,
         kind: 'slide',
-        language: util.getLanguage(slide.language),
+        language: langCodes.short,
         creator: slide.owner,
         contributors: slide.contributors,
         tags: slide.tags,
@@ -150,9 +155,9 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
     };
 
     // add language specific fields
-    slideDoc['title_' + slideDoc.language] = (util.stripHTML(slide.title) || '');
-    slideDoc['content_' + slideDoc.language] =(util.stripHTML(slide.content) || '');
-    slideDoc['speakernotes_' + slideDoc.language] = (util.stripHTML(slide.speakernotes) || '');
+    slideDoc['title_' + langCodes.suffix] = (util.stripHTML(slide.title) || '');
+    slideDoc['content_' + langCodes.suffix] =(util.stripHTML(slide.content) || '');
+    slideDoc['speakernotes_' + langCodes.suffix] = (util.stripHTML(slide.speakernotes) || '');
 
     return slideDoc;
 }
@@ -232,17 +237,17 @@ function getDeckTreeDocs(decktree){
 }
 
 let self = module.exports = {
-	index: function(deck){
+    index: function(deck){
 
-		// we are indexing only decktrees starting from root decks
-		if(!util.isRoot(deck)) return Promise.resolve();
-		
-		return deckService.getDeckTree(deck._id).then( (decktree) => {
-			return getDeckTreeDocs(decktree).then( (docs) => {
-				return solr.add(docs).then( () => { 
+        // we are indexing only decktrees starting from root decks
+        if(!util.isRoot(deck)) return Promise.resolve();
+
+        return deckService.getDeckTree(deck._id).then( (decktree) => {
+            return getDeckTreeDocs(decktree).then( (docs) => {
+                return solr.add(docs).then( () => { 
                     return solr.commit();
                 });
-			});
-		});
-	}
+            });
+        });
+    }
 };

@@ -2,7 +2,7 @@
 
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
-const { getActiveRevision, getLanguage, isRoot } = require('../lib/util');
+const { getActiveRevision, getLanguageCodes, isRoot } = require('../lib/util');
 const _ = require('lodash');
 
 function prepareDocument(dbDeck){
@@ -11,6 +11,8 @@ function prepareDocument(dbDeck){
     let activeRevision = getActiveRevision(dbDeck);
     if(!activeRevision) return Promise.reject(`#Error: cannot find active revision of deck ${dbDeck._id}`);
 
+    let langCodes = getLanguageCodes(activeRevision.language);
+
     let deck = {
         solr_id: `deck_${dbDeck._id}`,
         db_id: dbDeck._id,
@@ -18,7 +20,7 @@ function prepareDocument(dbDeck){
         kind:'deck',
         timestamp: dbDeck.timestamp,
         lastUpdate: dbDeck.lastUpdate,
-        language: getLanguage(activeRevision.language),
+        language: langCodes.short,
         creator: dbDeck.user,
         contributors: dbDeck.contributors.map( (contr) => { return contr.user; }),
         tags: (activeRevision.tags || []).map( (tag) => { return tag.tagName; }),
@@ -26,8 +28,8 @@ function prepareDocument(dbDeck){
     };
 
     // add language specific fields
-    deck['title_' + deck.language] = (activeRevision.title || '');
-    deck['description_' + deck.language] = (dbDeck.description || '');
+    deck['title_' + langCodes.suffix] = (activeRevision.title || '');
+    deck['description_' + langCodes.suffix] = (dbDeck.description || '');
 
     // fill extra metadata from other services
     let deepUsagePromise = deckService.getDeckDeepUsage(`${deck.db_id}-${deck.db_revision_id}`);
@@ -39,10 +41,10 @@ function prepareDocument(dbDeck){
         deck.isRoot = _.isEmpty(res[0]);
         deck.usage = res[2].filter( (deck) => !deck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
         deck.roots = res[2].map( (u) => u.id);
-        deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
+        deck.parents = res[0].map( (u) => { return `deck_${u.id}`; });
         deck.origin = `deck_${_.min(res[1])}`;
         deck.fork_count = res[1].length;
-        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage)
+        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage);
         return deck;
     });
 }
