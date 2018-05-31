@@ -41,10 +41,10 @@ function prepareDocument(dbDeck){
         deck.isRoot = _.isEmpty(res[0]);
         deck.usage = res[2].filter( (deck) => !deck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
         deck.roots = res[2].map( (u) => u.id);
-        deck.parents = res[0].map( (u) => { return `deck_${u.id}`});
+        deck.parents = res[0].map( (u) => { return `deck_${u.id}`; });
         deck.origin = `deck_${_.min(res[1])}`;
         deck.fork_count = res[1].length;
-        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage)
+        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage);
         return deck;
     });
 }

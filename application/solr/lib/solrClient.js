@@ -71,7 +71,7 @@ let self = module.exports = {
                 `roots:${deckId}`,
                 `!solr_id:deck_${deckId}`
             ], 
-            fl: `solr_id,usage`,
+            fl: 'solr_id,usage',
             start: start, 
             rows: rows,
             wt: 'json'

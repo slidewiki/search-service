@@ -55,7 +55,7 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         usage: visibleRootDecks.map( (u) => { return `${u.id}-${u.revision}`; }),
         roots: rootDecks.map( (u) => u.id),
         active: !_.isEmpty(visibleRootDecks),
-        parents: deepUsage.map( (u) => { return `deck_${u.id}`})
+        parents: deepUsage.map( (u) => { return `deck_${u.id}`; })
     };
 
     // add language specific fields

@@ -19,7 +19,7 @@ function getRootDeck(path){
 }
 
 function stringify(node){
-    return `${node.id}-${node.revision}`
+    return `${node.id}-${node.revision}`;
 }
 
 // ------------------- Functions for Deck transformation ---------------------- //
@@ -38,7 +38,7 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
         creator: decktree.owner,
         contributors: decktree.contributors,
         tags: (decktree.tags || []),
-        isRoot: (decktree.path.length == 1), 
+        isRoot: (decktree.path.length === 1), 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
         roots: rootDeck.id, 
         parents: deepUsage, 
@@ -237,17 +237,17 @@ function getDeckTreeDocs(decktree){
 }
 
 let self = module.exports = {
-	index: function(deck){
+    index: function(deck){
 
-		// we are indexing only decktrees starting from root decks
-		if(!util.isRoot(deck)) return Promise.resolve();
-		
-		return deckService.getDeckTree(deck._id).then( (decktree) => {
-			return getDeckTreeDocs(decktree).then( (docs) => {
-				return solr.add(docs).then( () => { 
+        // we are indexing only decktrees starting from root decks
+        if(!util.isRoot(deck)) return Promise.resolve();
+
+        return deckService.getDeckTree(deck._id).then( (decktree) => {
+            return getDeckTreeDocs(decktree).then( (docs) => {
+                return solr.add(docs).then( () => { 
                     return solr.commit();
                 });
-			});
-		});
-	}
+            });
+        });
+    }
 };
