@@ -154,8 +154,6 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
         parents: deepUsage
     };
 
-    let languageSuffix = util.getLanguageFieldSuffix(slide.language);
-
     // add language specific fields
     slideDoc['title_' + langCodes.suffix] = (util.stripHTML(slide.title) || '');
     slideDoc['content_' + langCodes.suffix] =(util.stripHTML(slide.content) || '');

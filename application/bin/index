@@ -14,10 +14,8 @@ function index(collection, indexFunction){
 	let allowErrors = 20;
 
 	return db.getTotalCount(collection).then( (totalCount) => {
-		console.log(`Indexing ${totalCount} ${collection}`);
-
 		let offset = 0;
-		let progressBar = new ProgressBar(`${collection} progress [:bar] :percent`, { total: totalCount });
+		let progressBar = new ProgressBar(`Indexed :current out of :total ${collection} (ETA: :eta sec) [:bar] :percent`, { total: totalCount });
 		return new Promise( (resolve, reject) => {
 
 			async.doWhilst(
@@ -47,9 +45,8 @@ function index(collection, indexFunction){
 				() => { return offset <= totalCount; },
 				(err) => { 
 					if(err)
-						reject(err);
-					else 
-						resolve(`Initial index of ${collection} has been completed`); 
+						return reject(err);
+					resolve();
 				}
 			);
 		});
@@ -65,7 +62,6 @@ let collectionsToIndex = [
 async.eachSeries(collectionsToIndex, (col, callback) => {
 	console.log();
 	index(col.name, col.indexMethod).then( (res) => {
-		console.log(res);
 		callback();
 	}).catch( (err) => {
 		callback(err);

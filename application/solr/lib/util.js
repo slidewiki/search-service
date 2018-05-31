@@ -2,7 +2,7 @@
 
 const htmlToText = require('html-to-text');
 const _ = require('lodash');
-const validLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'];
+const stemmerSupportedLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'];
 
 let self = module.exports = {
 	escapeSpecialChars: function(s){
@@ -32,13 +32,15 @@ let self = module.exports = {
     },
 
 	getLanguageCodes(language){
+        // language field indexed to SOLR
+        // if 'en' or 'EN' is given (all slides), set proper code for english
+        let languageCode = (language === 'en' || language === 'EN') ? 'en_GB' : language;
+
         return {
-            // language field indexed to SOLR
-            // if 'en' is given (all slides), set proper code for english
-            short: (language === 'en') ? 'en_GB' : language,
+            short: languageCode,
 
             // if language is not supported with a stemmer, then set text processing to general
-            suffix: (_.includes(validLanguages, language) ? language : 'general'),
+            suffix: (_.includes(stemmerSupportedLanguages, languageCode) ? languageCode : 'general'),
         };
 	}, 
 
