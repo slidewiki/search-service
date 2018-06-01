@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const db = require('../database/databaseConnection');
+const saveJob = require('../lib/saveJob');
+const ProgressBar = require('progress');
+
+const decks = require('../solr/collections/decks');
+const slides = require('../solr/collections/slides');
+const users = require('../solr/collections/users');
+
+async function index(collection) {
+    let limit = 100;
+    let allowErrors = 100;
+    
+    let totalCount = await db.getTotalCount(collection.name);
+    let progressBar = new ProgressBar(`Scheduling :current/:total ${collection.type} jobs (ETA: :eta sec) [:bar] :percent`, { total: totalCount });
+
+    for (let offset = 0; offset <= totalCount; offset += limit) {
+        let docs = await db.getAll(collection.name, offset, limit, { _id:1 });
+        for (let doc of docs) {
+            progressBar.tick();
+
+            await saveJob('searchUpdate', { 
+                type: collection.type, 
+                event: 'insert', 
+                id: doc._id, 
+                eventData: doc,
+            });
+        }
+    }
+}
+
+async function init() {
+    for (let collection of collectionsToIndex) {
+        await index(collection);
+    } 
+}
+
+let collectionsToIndex = [
+    { name: 'users', type: 'user', indexMethod: users.insert.bind(this) },
+    { name: 'decks', type: 'deck', indexMethod: decks.insert.bind(this) }, 
+    { name: 'slides', type: 'slide', indexMethod: slides.insert.bind(this) },
+];
+
+init().catch( (err) => {
+    console.error(err);
+    process.exit(-1);
+});

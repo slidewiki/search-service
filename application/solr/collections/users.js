@@ -6,7 +6,7 @@ const solrClient = require('../lib/solrClient'),
 
 let self = module.exports = {
 
-    index: function(userDbObj){
+    insert: function(userDbObj){
 
         if((userDbObj.reviewed && userDbObj.suspended) 
                                 || (userDbObj.deactivated)){
@@ -28,7 +28,7 @@ let self = module.exports = {
     update: function(userDbObj){
         // update specified fields
         if(!userDbObj.data.hasOwnProperty('$set')){
-            return this.index(userDbObj.data);
+            return this.insert(userDbObj.data);
         }
         
         let updateObj = {};

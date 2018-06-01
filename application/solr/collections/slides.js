@@ -68,7 +68,7 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
 
 let self = module.exports = {
 
-    index: function(dbSlide){
+    insert: function(dbSlide){
         return prepareDocument(dbSlide).then( (slideDocs) => {
             return solrClient.add(slideDocs);
         });
@@ -77,14 +77,14 @@ let self = module.exports = {
     update: function(slideEvent){
         if(!slideEvent.data.hasOwnProperty('$set')){
             return solrClient.delete(`origin:slide_${slideEvent.targetId}`, false).then( () => {
-                return self.index(slideEvent.data);
+                return self.insert(slideEvent.data);
             });
         }
 
         // delete all revisions of the slide and re-index slide
         return solrClient.delete(`origin:slide_${slideEvent.targetId}`, false).then( () => {
             return deckService.getSlide(slideEvent.targetId).then( (slide) => {
-                return self.index(slide);
+                return self.insert(slide);
             });
         });
     }

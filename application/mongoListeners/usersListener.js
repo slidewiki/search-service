@@ -5,7 +5,7 @@ const MongoStream = require('mongo-trigger'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
-    listen: function(){
+    listen: function() {
 
         // init data stream
         let usersStream = new MongoStream({
@@ -19,18 +19,30 @@ module.exports = {
         usersStream.watch(usersCollection, (event) => {
             // console.log('\nusers ' + JSON.stringify(event));
 
-            switch(event.operation){
+            let data = {};
+
+            switch (event.operation) {
                 case 'insert':
-                    users.index(event.data).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'user', 
+                        event: 'insert', 
+                        id: event.data._id, 
+                        eventData: event.data,
+                    };
                     break;
                 case 'update':
-                    users.update(event).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'user', 
+                        event: 'update', 
+                        id: event.targetId, 
+                        eventData: event,
+                    };
                     break;
             }
+
+            saveJob('searchUpdate', data).catch( (err) => {
+                console.warn(err.message);
+            });
         });
     }
 };

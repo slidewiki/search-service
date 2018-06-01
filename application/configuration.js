@@ -42,4 +42,22 @@ console.log();
 
 check(mongoConfig);
 
-module.exports = { solrConfig, mongoConfig };
+let agendaJobsCollection = (!co.isEmpty(process.env.AGENDA_JOBS_COLLECTION)) ? process.env.AGENDA_JOBS_COLLECTION : 'agendaJobs';
+let agendaJobsConcurrency = (!co.isEmpty(process.env.AGENDA_JOBS_CONCURRENCY)) ? process.env.AGENDA_JOBS_CONCURRENCY : 2;
+
+let agendaConfig = {
+    AGENDA_JOBS_COLLECTION: agendaJobsCollection, 
+    AGENDA_JOBS_CONCURRENCY: agendaJobsConcurrency,
+};
+
+check(agendaConfig);
+
+console.log('#=========================== AGENDA CONFIG ===========================#');
+console.log(JSON.stringify(agendaConfig, null, 4));
+console.log();
+
+module.exports = { 
+    solrConfig, 
+    mongoConfig, 
+    agendaConfig,
+};

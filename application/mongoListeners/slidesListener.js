@@ -5,7 +5,7 @@ const MongoStream = require('mongo-trigger'),
     mongoConfig = require('../configuration').mongoConfig;;
 
 module.exports = {
-    listen: function(){
+    listen: function() {
 
         // init data stream
         let slidesStream = new MongoStream({
@@ -19,18 +19,30 @@ module.exports = {
         slidesStream.watch(slideCollection, (event) => {
             // console.log('\nslide ' + JSON.stringify(event));
 
-            switch(event.operation){
+            let data = {};
+
+            switch (event.operation) {
                 case 'insert':
-                    slides.index(event.data).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'slide', 
+                        event: 'insert', 
+                        id: event.data._id, 
+                        eventData: event.data,
+                    };
                     break;
                 case 'update':
-                    slides.update(event).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'slide', 
+                        event: 'update', 
+                        id: event.targetId, 
+                        eventData: event,
+                    };
                     break;
             }
+
+            saveJob('searchUpdate', data).catch( (err) => {
+                console.warn(err.message);
+            });
         });
     }
 };
