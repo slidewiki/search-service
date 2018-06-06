@@ -1,3 +1,4 @@
+/* eslint promise/always-return: "off" */
 'use strict';
 
 const Db = require('mongodb').Db,
@@ -26,7 +27,40 @@ function testConnection(dbname) {
 }
 
 module.exports = {
-    connectToDatabase: function(dbname) {
+    /* eslint-disable promise/catch-or-return, no-unused-vars*/
+    createDatabase: function (dbname) {
+        dbname = testDbName(dbname);
+        let myPromise = new Promise((resolve, reject) => {
+            let db = new Db(dbname, new Server(config.HOST, config.PORT));
+            db.open()
+                .then((connection) => {
+                    connection.collection('test').insertOne({ //insert the first object to know that the database is properly created TODO this is not real test....could fail without your knowledge
+                        id: 1,
+                        data: {}
+                    }, () => {
+                        resolve(connection);
+                    });
+                });
+        });
+        /* eslint-enable promise/catch-or-return, no-unused-vars */
+
+        return myPromise;
+    },
+
+    cleanDatabase: function (dbname) {
+        dbname = testDbName(dbname);
+
+        return this.connectToDatabase(dbname)
+            .then((db) => {
+                const DatabaseCleaner = require('database-cleaner');
+                const databaseCleaner = new DatabaseCleaner('mongodb');
+                return new Promise((resolve) => databaseCleaner.clean(db, resolve));
+            }).catch((error) => {
+                throw error;
+            });
+    },
+
+    connectToDatabase: function (dbname) {
         dbname = testDbName(dbname);
 
         if (testConnection(dbname))
@@ -39,5 +73,10 @@ module.exports = {
                     dbConnection = db;
                     return db;
                 });
-    }
+    },
+
+    getCollection: function(name) {
+        return module.exports.connectToDatabase().then((db) => db.collection(name));
+    },
+
 };

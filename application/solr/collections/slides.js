@@ -25,7 +25,7 @@ function prepareDocument(dbSlide){
                 // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
                 if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
                     let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
-                                    rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
+                        rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
                     docs.push(revisionDoc);
                 }
             });

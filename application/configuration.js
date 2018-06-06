@@ -30,11 +30,16 @@ console.log();
 
 check(solrConfig);
 
+let slidewikiDbName = 'slidewiki';
+if (process.env.NODE_ENV === 'test') {
+    slidewikiDbName = 'slidewiki_test';
+}
+
 // find mongo config ENV variables
 let mongoConfig = {};
 mongoConfig.HOST = (!co.isEmpty(process.env.DATABASE_URL)) ? process.env.DATABASE_URL : 'localhost';
 mongoConfig.PORT = (!co.isEmpty(process.env.DATABASE_PORT)) ? process.env.DATABASE_PORT : '27017';
-mongoConfig.SLIDEWIKIDATABASE = 'slidewiki';
+mongoConfig.SLIDEWIKIDATABASE = slidewikiDbName;
 
 console.log('#========================== MONGO CONFIG ===========================#');
 console.log(JSON.stringify(mongoConfig, null, 4));

@@ -2,7 +2,8 @@
 
 const MongoStream = require('mongo-trigger'),
     slides = require('../solr/collections/slides'),
-    mongoConfig = require('../configuration').mongoConfig;;
+    mongoConfig = require('../configuration').mongoConfig;
+const saveJob = require('../lib/saveJob');
 
 module.exports = {
     listen: function() {

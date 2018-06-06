@@ -196,8 +196,8 @@ function getSlideDoc(slide){
         let deepUsage = getSlideDeepUsage(slide.path);
 
         return (getSlideAction(slide, results) === 'add') 
-                ? getSlideAddDoc(slide, rootDeck, deepUsage) 
-                : getSlideUpdateDoc(slide, rootDeck, deepUsage, results);
+            ? getSlideAddDoc(slide, rootDeck, deepUsage) 
+            : getSlideUpdateDoc(slide, rootDeck, deepUsage, results);
 
     });
 }

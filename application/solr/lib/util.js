@@ -6,12 +6,12 @@ const stemmerSupportedLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 
 
 let self = module.exports = {
     escapeSpecialChars: function(s){
-	    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
-	        return '\\' + match;
-	    })
-	    .replace(/&&/g, '\\&\\&')
-	    .replace(/\|\|/g, '\\|\\|')
-	    .replace(/'/g, '');
+        return s.replace(/([+\-!(){}[\]^"~*?:\\])/g, (match) => {
+            return '\\' + match;
+        })
+            .replace(/&&/g, '\\&\\&')
+            .replace(/\|\|/g, '\\|\\|')
+            .replace(/'/g, '');
     }, 
 
     stripHTML: function(htmlString){
@@ -75,7 +75,7 @@ let self = module.exports = {
             suggestions.push(termSuggestion.trim());
         }
        
-	    return _.uniq(suggestions);
+        return _.uniq(suggestions);
     }, 
 
     parseFacets: function(facets){

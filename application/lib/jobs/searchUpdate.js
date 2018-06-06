@@ -7,9 +7,9 @@ const users = require('../../solr/collections/users');
 function handleDeckUpdate(data) {
     if (data.event === 'insert') {
         return decks.insert(data.eventData);
-    } else if (deck.event === 'update') {
-        return decks.update(data.eventData);
-    } else if (deck.event === 'delete') {
+    } else if (data.event === 'update') {
+        return decks.update(data.id);
+    } else if (data.event === 'delete') {
         return decks.archive(data.id);
     }
     else {
