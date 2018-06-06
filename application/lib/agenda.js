@@ -39,13 +39,13 @@ if (jobTypes.length) {
 
     // also log stuff
     agenda.on('start', (job) => {
-        console.log('Job %s started for %s %s', job.attrs.name, job.attrs.data.type, job.attrs.data.id);
+        console.log('Job %s (%s) started for %s %s', job.attrs.name, job.attrs.data.event, job.attrs.data.type, job.attrs.data.id);
     });
     agenda.on('success', (job) => {
-        console.log('Job %s completed successfully for %s %s', job.attrs.name, job.attrs.data.type, job.attrs.data.id);
+        console.log('Job %s (%s) completed successfully for %s %s', job.attrs.name, job.attrs.data.event, job.attrs.data.type, job.attrs.data.id);
     });
     agenda.on('fail', (err, job) => {
-        console.warn('Job %s for %s %s failed', job.attrs.name, job.attrs.data.type, job.attrs.data.id);
+        console.warn('Job %s (%s) for %s %s failed', job.attrs.name, job.attrs.data.event, job.attrs.data.type, job.attrs.data.id);
         console.warn(err.message);
     });
 

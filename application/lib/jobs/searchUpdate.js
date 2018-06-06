@@ -1,6 +1,7 @@
 'use strict';
 
 const decks = require('../../solr/collections/decks');
+const decktree = require('../../solr/collections/decktree');
 const slides = require('../../solr/collections/slides');
 const users = require('../../solr/collections/users');
 
@@ -17,11 +18,19 @@ function handleDeckUpdate(data) {
     }
 }
 
+function handleDeckTreeUpdate(data) {
+    if (data.event === 'insert') {
+        return decktree.index(data.eventData);
+    } else {
+        return Promise.resolve();
+    }
+}
+
 function handleSlideUpdate(data) {
     if (data.event === 'insert') {
         return slides.insert(data.eventData);
     } else if (data.event === 'update') {
-        return slides.update(data.eventData);
+        return slides.update(data.id);
     } else {
         return Promise.resolve();
     }
@@ -31,7 +40,7 @@ function handleUserUpdate(data) {
     if (data.event === 'insert') {
         return users.insert(data.eventData);
     } else if (data.event === 'update') {
-        return users.update(data.eventData);
+        return users.update(data.id, data.eventData);
     } else {
         return Promise.resolve();
     }
@@ -44,6 +53,9 @@ module.exports = (agenda) => {
         switch (data.type) {
             case 'deck': 
                 handleDeckUpdate(data).then( () => done()).catch(done);
+                break;
+            case 'decktree':
+                handleDeckTreeUpdate(data).then( () => done()).catch(done);
                 break;
             case 'slide':
                 handleSlideUpdate(data).then( () => done()).catch(done);

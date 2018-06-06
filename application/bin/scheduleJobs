@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// Do not use this as it raises mongo cpu usage
 'use strict';
 
 const db = require('../database/databaseConnection');
@@ -32,19 +33,20 @@ async function index(collection) {
     }
 }
 
-async function init() {
+async function scheduleJobs() {
     for (let collection of collectionsToIndex) {
         await index(collection);
     } 
 }
 
 let collectionsToIndex = [
-    { name: 'users', type: 'user', indexMethod: users.insert.bind(this) },
-    { name: 'decks', type: 'deck', indexMethod: decks.insert.bind(this) }, 
-    { name: 'slides', type: 'slide', indexMethod: slides.insert.bind(this) },
+    { name: 'users', type: 'user' },
+    { name: 'decks', type: 'decktree' }, 
 ];
 
-init().catch( (err) => {
+scheduleJobs().then( () => {
+    process.exit(0);
+}).catch( (err) => {
     console.error(err);
     process.exit(-1);
 });

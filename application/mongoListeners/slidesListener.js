@@ -36,7 +36,6 @@ module.exports = {
                         type: 'slide', 
                         event: 'update', 
                         id: event.targetId, 
-                        eventData: event,
                     };
                     break;
             }

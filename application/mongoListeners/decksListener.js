@@ -36,7 +36,6 @@ module.exports = {
                         type: 'deck',
                         event: 'update', 
                         id: event.targetId, 
-                        eventData: event,
                     };
                     break;
                 case 'delete':

@@ -4,6 +4,11 @@ const MongoStream = require('mongo-trigger'),
     users = require('../solr/collections/users'),
     mongoConfig = require('../configuration').mongoConfig;
 const saveJob = require('../lib/saveJob');
+const _ = require('lodash');
+
+function pickAttributes(user) {
+    return _.pick(user, '_id', 'username', 'forename', 'surname', 'reviewed', 'suspended', 'deactivated');
+}
 
 module.exports = {
     listen: function() {
@@ -20,24 +25,46 @@ module.exports = {
         usersStream.watch(usersCollection, (event) => {
             // console.log('\nusers ' + JSON.stringify(event));
 
-            let data = {};
+            let data = {}, user = {};
 
             switch (event.operation) {
                 case 'insert':
+
+                    user = pickAttributes(event.data);
+
                     data = {
                         type: 'user', 
                         event: 'insert', 
-                        id: event.data._id, 
-                        eventData: event.data,
+                        id: user._id, 
+                        eventData: user,
                     };
                     break;
                 case 'update':
-                    data = {
-                        type: 'user', 
-                        event: 'update', 
-                        id: event.targetId, 
-                        eventData: event,
-                    };
+                    // if not $set is given, then handle event as insert
+                    if (!event.data.hasOwnProperty('$set')) {
+                        data = {
+                            type: 'user', 
+                            event: 'insert', 
+                            id: event.targetId, 
+                            eventData: event.data,
+                        };
+
+                    // update event
+                    } else {
+
+                        user = pickAttributes(event.data.$set);
+
+                        if (_.isEmpty(user)) {
+                            return;
+                        }
+
+                        data = {
+                            type: 'user', 
+                            event: 'update', 
+                            id: event.targetId, 
+                            eventData: user,
+                        }; 
+                    }
                     break;
             }
 

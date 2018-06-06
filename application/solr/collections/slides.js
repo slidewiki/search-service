@@ -7,32 +7,30 @@ const { stripHTML, getLanguageCodes, getRevision } = require('../lib/util');
 const _ = require('lodash');
 // const async = require('async');
 
-function prepareDocument(dbSlide){
+async function prepareDocument(dbSlide){
 
-    return deckService.getSlideRootDecks(`${dbSlide._id}`).then( (rootDecks) => {
-        let rootDecksByRevision = _.groupBy(rootDecks, 'using');
+    let rootDecks = await deckService.getSlideRootDecks(`${dbSlide._id}`);
+    let rootDecksByRevision = _.groupBy(rootDecks, 'using');
 
-        return deckService.getSlideDeepUsage(`${dbSlide._id}`).then( (deepUsage) => {
-            let deepUsageByRevision = _.groupBy(deepUsage, 'using');
+    let deepUsage = await deckService.getSlideDeepUsage(`${dbSlide._id}`);
+    let deepUsageByRevision = _.groupBy(deepUsage, 'using');
 
-            let docs = [];
+    let docs = [];
 
-            // prepare solr documents for each active slide revision
-            Object.keys(rootDecksByRevision).forEach( (revisionId) => {
-                let slideRevision = getRevision(dbSlide, parseInt(revisionId));
-                if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
-                
-                // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
-                if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
-                    let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
-                        rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
-                    docs.push(revisionDoc);
-                }
-            });
-
-            return docs;
-        });
+    // prepare solr documents for each active slide revision
+    Object.keys(rootDecksByRevision).forEach( (revisionId) => {
+        let slideRevision = getRevision(dbSlide, parseInt(revisionId));
+        if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
+        
+        // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
+        if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
+            let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
+                rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
+            docs.push(revisionDoc);
+        }
     });
+
+    return docs;
 }
 
 function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
@@ -68,25 +66,15 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
 
 let self = module.exports = {
 
-    insert: function(dbSlide){
-        return prepareDocument(dbSlide).then( (slideDocs) => {
-            return solrClient.add(slideDocs);
-        });
+    insert: async function(slide){
+        let docs = await prepareDocument(slide);
+        return solrClient.add(docs);
     },
 
-    update: function(slideEvent){
-        if(!slideEvent.data.hasOwnProperty('$set')){
-            return solrClient.delete(`origin:slide_${slideEvent.targetId}`, false).then( () => {
-                return self.insert(slideEvent.data);
-            });
-        }
-
-        // delete all revisions of the slide and re-index slide
-        return solrClient.delete(`origin:slide_${slideEvent.targetId}`, false).then( () => {
-            return deckService.getSlide(slideEvent.targetId).then( (slide) => {
-                return self.insert(slide);
-            });
-        });
+    update: async function(slideId){
+        await solrClient.delete(`origin:slide_${slideId}`, false);
+        let slide = await deckService.getSlide(slideId);
+        return self.insert(slide);
     }
     
 };
