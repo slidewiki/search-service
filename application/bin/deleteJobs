@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const agenda = require('../lib/agenda');
+
+agenda.on('ready', () => {
+    agenda.cancel({
+        name: 'searchUpdate'
+    }, (err, numRemoved) => {
+        if (err) {
+            console.warn('Error: Unable to delete agenda search jobs');
+            process.exit(-1);
+        } 
+
+        console.log(`${numRemoved} search jobs deleted successfully`);
+        process.exit(0);
+    });
+});
+

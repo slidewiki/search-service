@@ -1,4 +1,4 @@
-template:
+searchservice:
   image: slidewiki/searchservice:latest-dev
   restart: on-failure:5
   expose:
@@ -16,3 +16,5 @@ template:
     - SOLR_CORE=swikcore
     - SERVICE_URL_DECK=http://deckservice.experimental.slidewiki.org
     - DATABASE_URL=mongodb # use a url or the name, defined in the docker-compose file
+    - AGENDA_JOBS_COLLECTION=agendaJobs
+    - AGENDA_JOBS_CONCURRENCY=2

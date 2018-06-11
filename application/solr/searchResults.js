@@ -21,8 +21,8 @@ function getSolrParameters(params){
 
     if(params.license){
         params.license = (params.license instanceof Array) ?
-            params.license.map( (el) => { return '\"' + el + '\"'; }).join(' OR ') :
-            '\"' + params.license + '\"';
+            params.license.map( (el) => { return '"' + el + '"'; }).join(' OR ') :
+            '"' + params.license + '"';
     }
     if(params.tag){
         params.tag = (params.tag instanceof Array) ?
