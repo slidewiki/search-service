@@ -1,12 +1,12 @@
 {
-  "name": "template_application",
+  "name": "search-service",
   "version": "0.1.0",
-  "description": "This is a Microservice template appication, meant to be forked.",
+  "description": "Service to support indexing and searching of slidewiki content.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/slidewiki/Microservice-Template"
+    "url": "https://github.com/slidewiki/search-service"
   },
-  "bugs": "https://github.com/slidewiki/Microservice-Template/issues",
+  "bugs": "https://github.com/slidewiki/search-service/issues",
   "author": "Roy Meissner (https://rmeissn.github.io/)",
   "license": "MPL-2.0",
   "main": "server.js",
