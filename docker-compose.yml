@@ -39,4 +39,5 @@ services:
       - SOLR_CORE=swikcore
       - AGENDA_JOBS_COLLECTION=agendaJobs
       - AGENDA_JOBS_CONCURRENCY=2
+      - JOB_TYPES=searchUpdate
     network_mode: bridge
