@@ -6,8 +6,8 @@ const Microservices = require('../configs/microservices.js');
 let self = module.exports = {
     getDeck: function(deckId){
         return rp.get({
-        	uri: `${Microservices.deck.uri}/deck/${deckId}`, 
-        	json: true
+            uri: `${Microservices.deck.uri}/deck/${deckId}`, 
+            json: true
         });
     },
 
@@ -19,10 +19,10 @@ let self = module.exports = {
     },
 
     getDeckDeepUsage: function(deckId){
-    	return rp.get({
-    		uri: `${Microservices.deck.uri}/deck/${deckId}/deepUsage`, 
-    		json: true
-    	});
+        return rp.get({
+            uri: `${Microservices.deck.uri}/deck/${deckId}/deepUsage`, 
+            json: true
+        });
     }, 
 
     getSlideDeepUsage: function(slideId){

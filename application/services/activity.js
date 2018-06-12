@@ -8,9 +8,9 @@ let self = module.exports = {
         return rp.get({
             uri: `${Microservices.user.uri}/activities/${kind}/${id}`,
             qs: {
-            	metaonly: true, 
-            	activity_type: (type === 'like') ? 'react' : 'view', 
-            	all_revisions: true,
+                metaonly: true, 
+                activity_type: (type === 'like') ? 'react' : 'view', 
+                all_revisions: true,
             },
             json: true
         });

@@ -65,16 +65,24 @@ decksListener.listen();
 slidesListener.listen();
 usersListener.listen();
 
+const createIndexes = require('./database/createIndexes');
+
 //Register plugins and start webserver
 server.register(plugins, (err) => {
     if (err) {
         console.error(err);
         global.process.exit();
     } else {
-        server.start(() => {
-            server.log('info', 'Server started at ' + server.info.uri);
-            //Register routes
-            require('./routes.js')(server);
+        // create any indexes before starting the server
+        createIndexes().catch((err) => {
+            console.warn('error creating the indexes on the database collection:');
+            console.warn(err.message);
+        }).then(() => {
+            server.start(() => {
+                server.log('info', 'Server started at ' + server.info.uri);
+                //Register routes
+                require('./routes.js')(server);
+            });
         });
     }
 });

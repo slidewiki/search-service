@@ -6,12 +6,12 @@ const stemmerSupportedLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 
 
 let self = module.exports = {
     escapeSpecialChars: function(s){
-	    return s.replace(/([\+\-!\(\)\{\}\[\]\^"~\*\?:\\])/g, (match) => {
-	        return '\\' + match;
-	    })
-	    .replace(/&&/g, '\\&\\&')
-	    .replace(/\|\|/g, '\\|\\|')
-	    .replace(/'/g, '');
+        return s.replace(/([+\-!(){}[\]^"~*?:\\])/g, (match) => {
+            return '\\' + match;
+        })
+            .replace(/&&/g, '\\&\\&')
+            .replace(/\|\|/g, '\\|\\|')
+            .replace(/'/g, '');
     }, 
 
     stripHTML: function(htmlString){
@@ -32,9 +32,18 @@ let self = module.exports = {
     },
 
     getLanguageCodes(language){
-        // language field indexed to SOLR
-        // if 'en' or 'EN' is given (all slides), set proper code for english
-        let languageCode = (language === 'en' || language === 'EN') ? 'en_GB' : language;
+
+        let languageCode = null;
+    
+        if (language) {
+
+            // language codes from translation some with dash
+            language = language.replace('-', '_');
+
+            // language field indexed to SOLR
+            // if 'en' or 'EN' is given (all slides), set proper code for english
+            languageCode = (language === 'en' || language === 'EN') ? 'en_GB' : language;
+        }
 
         return {
             short: languageCode,
@@ -75,7 +84,7 @@ let self = module.exports = {
             suggestions.push(termSuggestion.trim());
         }
        
-	    return _.uniq(suggestions);
+        return _.uniq(suggestions);
     }, 
 
     parseFacets: function(facets){

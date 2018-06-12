@@ -2,10 +2,11 @@
 
 const MongoStream = require('mongo-trigger'),
     decks = require('../solr/collections/decks'),
-    mongoConfig = require('../configuration').mongoConfig;;
+    mongoConfig = require('../configuration').mongoConfig;
+const saveJob = require('../lib/saveJob');
 
 module.exports = {
-    listen: function(){
+    listen: function() {
 
         // init data stream
         let decksStream = new MongoStream({
@@ -19,23 +20,36 @@ module.exports = {
         decksStream.watch(deckCollection, (event) => {
             // console.log('\ndeck ' + JSON.stringify(event));
 
-            switch(event.operation){
+            let data = {};
+
+            switch (event.operation) {
                 case 'insert':
-                    decks.index(event.data).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'deck',
+                        event: 'insert', 
+                        id: event.data._id, 
+                        eventData: event.data,
+                    };
                     break;
                 case 'update':
-                    decks.update(event).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'deck',
+                        event: 'update', 
+                        id: event.targetId, 
+                    };
                     break;
                 case 'delete':
-                    decks.archive(event.targetId).catch( (err) => {
-                        console.log(err);
-                    });
+                    data = {
+                        type: 'deck',
+                        event: 'delete', 
+                        id: event.targetId, 
+                    };
                     break;
             }
+
+            saveJob('searchUpdate', data).catch( (err) => {
+                console.warn(err.message);
+            });
         });
     }
 };

@@ -174,9 +174,8 @@ function getSlideDoc(slide){
         let rootDeck = getRootDeck(slide.path);
 
         return (getSlideAction(slide, results) === 'add') 
-                ? getSlideAddDoc(slide, rootDeck) 
-                : getSlideUpdateDoc(slide, rootDeck, results);
-
+            ? getSlideAddDoc(slide, rootDeck) 
+            : getSlideUpdateDoc(slide, rootDeck, results);
     });
 }
 
@@ -190,7 +189,7 @@ async function getDeckTreeDocs(decktree){
 
     for (const item of decktree.contents) {
         if (!item) {
-            throw new Error(`Invalid content item at position ${index} of decktree ${decktree.id}`);
+            throw new Error(`Invalid content item in decktree ${decktree.id}`);
         }
 
         if (item.type === 'deck') {
@@ -213,7 +212,7 @@ let self = module.exports = {
 
         let decktree = await deckService.getDeckTree(deck._id);
         let docs = await getDeckTreeDocs(decktree);
-    // console.log(JSON.stringify(docs, null, 4));
+
         await solr.add(docs);
         return solr.commit();
     }

@@ -83,7 +83,7 @@ function checkDeckVisibility(docs, deck){
 }
 
 let self = module.exports = {
-    index: function(dbDeck){
+    insert: function(dbDeck){
         let updateContentsPromise;
         if(!isRoot(dbDeck)) {
             updateContentsPromise = Promise.resolve();
@@ -104,14 +104,9 @@ let self = module.exports = {
         return Promise.all([updateDeckPromise, updateContentsPromise]);
     }, 
 
-    update: function(deckEvent){
-        if(!deckEvent.data.hasOwnProperty('$set')){
-            return self.index(deckEvent.data);
-        }
-
-        return deckService.getDeck(deckEvent.targetId).then( (dbDeck) => {
-            return self.index(dbDeck);
-        });
+    update: async function(deckId){
+        let deck = await deckService.getDeck(deckId);
+        return self.insert(deck);
     }, 
 
     archive: function(deckId){

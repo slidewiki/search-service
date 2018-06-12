@@ -30,11 +30,16 @@ console.log();
 
 check(solrConfig);
 
+let slidewikiDbName = 'slidewiki';
+if (process.env.NODE_ENV === 'test') {
+    slidewikiDbName = 'slidewiki_test';
+}
+
 // find mongo config ENV variables
 let mongoConfig = {};
 mongoConfig.HOST = (!co.isEmpty(process.env.DATABASE_URL)) ? process.env.DATABASE_URL : 'localhost';
 mongoConfig.PORT = (!co.isEmpty(process.env.DATABASE_PORT)) ? process.env.DATABASE_PORT : '27017';
-mongoConfig.SLIDEWIKIDATABASE = 'slidewiki';
+mongoConfig.SLIDEWIKIDATABASE = slidewikiDbName;
 
 console.log('#========================== MONGO CONFIG ===========================#');
 console.log(JSON.stringify(mongoConfig, null, 4));
@@ -42,4 +47,22 @@ console.log();
 
 check(mongoConfig);
 
-module.exports = { solrConfig, mongoConfig };
+let agendaJobsCollection = (!co.isEmpty(process.env.AGENDA_JOBS_COLLECTION)) ? process.env.AGENDA_JOBS_COLLECTION : 'agendaJobs';
+let agendaJobsConcurrency = (!co.isEmpty(process.env.AGENDA_JOBS_CONCURRENCY)) ? process.env.AGENDA_JOBS_CONCURRENCY : 2;
+
+let agendaConfig = {
+    AGENDA_JOBS_COLLECTION: agendaJobsCollection, 
+    AGENDA_JOBS_CONCURRENCY: agendaJobsConcurrency,
+};
+
+check(agendaConfig);
+
+console.log('#=========================== AGENDA CONFIG ===========================#');
+console.log(JSON.stringify(agendaConfig, null, 4));
+console.log();
+
+module.exports = { 
+    solrConfig, 
+    mongoConfig, 
+    agendaConfig,
+};
