@@ -1,18 +1,10 @@
 'use strict';
 
-const util = require('../lib/util');
+const { getValue, getLanguageCodes, getFirstLevelContent, stripHTML, isRoot } = require('../lib/util');
 const solr = require('../lib/solrClient');
 const deckService = require('../../services/deck');
 const _ = require('lodash');
 const async = require('async');
-
-function getDeckDeepUsage(path){
-    return path.slice(0, -1).map( (node) => { return `deck_${node.id}`; });
-}
-
-function getSlideDeepUsage(path){ 
-    return path.map( (node) => { return `deck_${node.id}`; });
-}
 
 function getRootDeck(path){
     return path[0];
@@ -24,10 +16,10 @@ function stringify(node){
 
 // ------------------- Functions for Deck transformation ---------------------- //
 
-function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
-    let langCodes = util.getLanguageCodes(decktree.language);
+function getDeckAddDoc(decktree, rootDeck, forkGroup){
+    let langCodes = getLanguageCodes(decktree.language);
 
-    let deckDoc = {
+    let doc = {
         solr_id: `deck_${decktree.id}`,
         db_id: decktree.id,
         db_revision_id: decktree.revisionId,
@@ -41,16 +33,17 @@ function getDeckAddDoc(decktree, rootDeck, deepUsage, forkGroup){
         isRoot: (decktree.path.length === 1), 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
         roots: rootDeck.id, 
-        parents: deepUsage, 
         origin: `deck_${_.min(forkGroup)}`, 
         fork_count: forkGroup.length, 
         active: !rootDeck.hidden
     };
 
     // add language specific fields
-    deckDoc['title_' + langCodes.suffix] = (decktree.title || '');
-    deckDoc['description_' + langCodes.suffix] = (decktree.description || '');
-    return deckDoc;
+    doc['title_' + langCodes.suffix] = getValue(decktree.title);
+    doc['description_' + langCodes.suffix] = getValue(decktree.description);
+    doc[`content_${langCodes.suffix}`] = getFirstLevelContent(decktree);
+
+    return doc;
 }
 
 function getDeckAction(currentDoc, results){
@@ -69,27 +62,22 @@ function getDeckAction(currentDoc, results){
         return 'update';
 }
 
-function getDeckUpdateDoc(currentDoc, rootDeck, deepUsage, results){
+function getDeckUpdateDoc(currentDoc, rootDeck, results){
     let existingDoc = results[0];
 
-    // merge usage, roots and parent arrays
+    // merge usage and roots arrays
     let roots = Array.from(existingDoc.roots || []);
     roots.push(rootDeck.id);
 
     let usage = Array.from(existingDoc.usage || []);
     if(!rootDeck.hidden){
         usage.push(stringify(rootDeck));
-
     }
     
-    let parents = Array.from(existingDoc.parents || []);
-    Array.prototype.push.apply(parents, _.flatten(deepUsage));
-
     return {
         solr_id: existingDoc.solr_id, 
         usage: { set: _.uniq(usage) }, 
         roots: { set: _.uniq(roots) },
-        parents: { set: _.uniq(parents) }, 
 
         // atomic update seem to set boolean fields to false, 
         // so we are re-sending them
@@ -98,22 +86,18 @@ function getDeckUpdateDoc(currentDoc, rootDeck, deepUsage, results){
     };
 }
 
-function getDeckDoc(deck){
-    return solr.getById('deck', deck.id).then( (results) => {
-        return deckService.getForkGroup(deck.id).then( (forkGroup) => {
-
-            let rootDeck = getRootDeck(deck.path);
-            let deepUsage = getDeckDeepUsage(deck.path);
-
-            let action = getDeckAction(deck, results);
-            if(action === 'add') {
-                return getDeckAddDoc(deck, rootDeck, deepUsage, forkGroup);
-            } else if (action === 'update') {
-                return getDeckUpdateDoc(deck, rootDeck, deepUsage, results);
-            }
-            return;
-        });
-    });
+async function getDeckDoc(deck){
+    let results = await solr.getById('deck', deck.id);
+    let forkGroup = await deckService.getForkGroup(deck.id);
+    let rootDeck = getRootDeck(deck.path);
+    
+    let action = getDeckAction(deck, results);
+    if(action === 'add') {
+        return getDeckAddDoc(deck, rootDeck, forkGroup);
+    } else if (action === 'update') {
+        return getDeckUpdateDoc(deck, rootDeck, results);
+    }
+    return;
 }
 
 // ------------------- Functions for Slide transformation ---------------------- //
@@ -132,9 +116,9 @@ function getSlideAction(slide, results){
         return 'add';
 }
 
-function getSlideAddDoc(slide, rootDeck, deepUsage){
+function getSlideAddDoc(slide, rootDeck){
 
-    let langCodes = util.getLanguageCodes(slide.language);
+    let langCodes = getLanguageCodes(slide.language);
 
     let slideDoc = {
         solr_id: `slide_${slide.id}-${slide.revisionId}`,
@@ -151,18 +135,17 @@ function getSlideAddDoc(slide, rootDeck, deepUsage){
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck), 
         roots: rootDeck.id,
         active: !rootDeck.hidden, 
-        parents: deepUsage
     };
 
     // add language specific fields
-    slideDoc['title_' + langCodes.suffix] = (util.stripHTML(slide.title) || '');
-    slideDoc['content_' + langCodes.suffix] =(util.stripHTML(slide.content) || '');
-    slideDoc['speakernotes_' + langCodes.suffix] = (util.stripHTML(slide.speakernotes) || '');
+    slideDoc['title_' + langCodes.suffix] = getValue(stripHTML(slide.title));
+    slideDoc['content_' + langCodes.suffix] = getValue(stripHTML(slide.content));
+    slideDoc['speakernotes_' + langCodes.suffix] = getValue(stripHTML(slide.speakernotes));
 
     return slideDoc;
 }
 
-function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
+function getSlideUpdateDoc(currentDoc, rootDeck, results){
     let existingDoc = results[0];
 
     // merge usage, roots and parent arrays
@@ -175,14 +158,10 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
         usage.push(stringify(rootDeck));
     }
     
-    let parents = Array.from(existingDoc.parents || []);
-    Array.prototype.push.apply(parents, _.flatten(deepUsage));
-
     return {
         solr_id: existingDoc.solr_id, 
         usage: { set: _.uniq(usage) }, 
         roots: { set: _.uniq(roots) },
-        parents: { set: _.uniq(parents) },
 
         // atomic update seem to set boolean fields to false, 
         // so we are re-sending them         
@@ -193,61 +172,49 @@ function getSlideUpdateDoc(currentDoc, rootDeck, deepUsage, results){
 function getSlideDoc(slide){
     return solr.getById('slide', `${slide.id}-${slide.revisionId}`).then( (results) => {
         let rootDeck = getRootDeck(slide.path);
-        let deepUsage = getSlideDeepUsage(slide.path);
 
         return (getSlideAction(slide, results) === 'add') 
-                ? getSlideAddDoc(slide, rootDeck, deepUsage) 
-                : getSlideUpdateDoc(slide, rootDeck, deepUsage, results);
+                ? getSlideAddDoc(slide, rootDeck) 
+                : getSlideUpdateDoc(slide, rootDeck, results);
 
     });
 }
 
-function getDeckTreeDocs(decktree){
+async function getDeckTreeDocs(decktree){
     let docs = [];
 
-    return getDeckDoc(decktree).then( (deckDoc) => {
+    let doc = await getDeckDoc(decktree);
+    if (doc) {
+        docs.push(doc);
+    } 
 
-        if(deckDoc) docs.push(deckDoc);
+    for (const item of decktree.contents) {
+        if (!item) {
+            throw new Error(`Invalid content item at position ${index} of decktree ${decktree.id}`);
+        }
 
-        return new Promise( (resolve, reject) => {
-            async.eachOfSeries(decktree.contents, (item, index, callback) => {
-                if(!item) return callback(new Error(`Invalid content item at position ${index} of decktree ${decktree.id}`));
+        if (item.type === 'deck') {
+            let subDocs = await getDeckTreeDocs(item);
+            Array.prototype.push.apply(docs, subDocs);
+        } else if (item.type === 'slide') {
+            let doc = await getSlideDoc(item);
+            docs.push(doc);
+        }
+    }
 
-                if(item.type === 'deck') {
-                    getDeckTreeDocs(item).then( (subDocs) => {
-                        Array.prototype.push.apply(docs, subDocs);
-                        callback();
-                    }).catch(callback);
-                } else if (item.type === 'slide') {
-                    // form solr slide document
-                    getSlideDoc(item).then( (slideDoc) => {
-                        docs.push(slideDoc);
-                        callback();
-                    }).catch(callback);
-                }
-            }, (err) => {               
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(docs);
-                }
-            });
-        });  
-    });
+    return docs;
 }
 
 let self = module.exports = {
-    index: function(deck){
+    index: async function(deck){
 
         // we are indexing only decktrees starting from root decks
-        if(!util.isRoot(deck)) return Promise.resolve();
+        if(!isRoot(deck)) return Promise.resolve();
 
-        return deckService.getDeckTree(deck._id).then( (decktree) => {
-            return getDeckTreeDocs(decktree).then( (docs) => {
-                return solr.add(docs).then( () => { 
-                    return solr.commit();
-                });
-            });
-        });
+        let decktree = await deckService.getDeckTree(deck._id);
+        let docs = await getDeckTreeDocs(decktree);
+    // console.log(JSON.stringify(docs, null, 4));
+        await solr.add(docs);
+        return solr.commit();
     }
 };

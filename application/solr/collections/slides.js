@@ -3,9 +3,8 @@
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
 
-const { stripHTML, getLanguageCodes, getRevision } = require('../lib/util');
+const { stripHTML, getLanguageCodes, getRevision, getValue } = require('../lib/util');
 const _ = require('lodash');
-// const async = require('async');
 
 function prepareDocument(dbSlide){
 
@@ -59,9 +58,9 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
     };
 
     // add language specific fields
-    slide['title_' + langCodes.suffix] = (stripHTML(slideRevision.title) || '');
-    slide['content_' + langCodes.suffix] =(stripHTML(slideRevision.content) || '');
-    slide['speakernotes_' + langCodes.suffix] = (stripHTML(slideRevision.speakernotes) || '');
+    slide['title_' + langCodes.suffix] = stripHTML(getValue(slideRevision.title));
+    slide['content_' + langCodes.suffix] = stripHTML(getValue(slideRevision.content));
+    slide['speakernotes_' + langCodes.suffix] = stripHTML(getValue(slideRevision.speakernotes));
 
     return slide;
 }

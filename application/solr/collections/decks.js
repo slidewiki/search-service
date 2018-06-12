@@ -2,7 +2,7 @@
 
 const solrClient = require('../lib/solrClient');
 const deckService = require('../../services/deck');
-const { getActiveRevision, getLanguageCodes, isRoot } = require('../lib/util');
+const { getActiveRevision, getLanguageCodes, isRoot, getValue } = require('../lib/util');
 const _ = require('lodash');
 
 function prepareDocument(dbDeck){
@@ -28,8 +28,8 @@ function prepareDocument(dbDeck){
     };
 
     // add language specific fields
-    deck['title_' + langCodes.suffix] = (activeRevision.title || '');
-    deck['description_' + langCodes.suffix] = (dbDeck.description || '');
+    deck['title_' + langCodes.suffix] = getValue(activeRevision.title);
+    deck['description_' + langCodes.suffix] = getValue(dbDeck.description);
 
     // fill extra metadata from other services
     let deepUsagePromise = deckService.getDeckDeepUsage(`${deck.db_id}-${deck.db_revision_id}`);

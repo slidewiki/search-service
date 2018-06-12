@@ -21,9 +21,12 @@ module.exports = {
 
     // finds users
     findUsers: function(q){
-        let queryString = `q=${escapeSpecialChars(encodeURIComponent(q))}*&hl=true`;
-        
-        return solrClient.query(queryString, 'swSuggestUsers').then( (solrResponse) => {
+        let query = {
+            q: `${escapeSpecialChars(q)}*`, 
+            hl: true,
+        };
+       
+        return solrClient.query('swSuggestUsers', query).then( (solrResponse) => {
             let highlight = solrResponse.highlighting;
  
             return solrResponse.response.docs.map( (user) => {
@@ -69,7 +72,7 @@ module.exports = {
             'facet.prefix': curKeyword
         };
 
-        return solrClient.query(querystring.stringify(query), 'swSuggestKeywords').then( (res) => {
+        return solrClient.query('swSuggestKeywords', query).then( (res) => {
             res = res.facet_counts.facet_fields.autocomplete;
             let docs = [];
 
@@ -99,8 +102,6 @@ module.exports = {
                     docs: docs
                 }
             };
-        }).catch( (err) => {
-            return Promise.reject(err);
         });
     }
 };

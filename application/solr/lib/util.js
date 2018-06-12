@@ -93,4 +93,22 @@ let self = module.exports = {
         let active = self.getActiveRevision(deck);
         return _.isEmpty(active.usage);
     },
+
+    getValue: function(value) {
+        return (value || '');
+    },
+    
+    getFirstLevelContent: function(decktree) {
+        let content = '';
+
+        decktree.contents.forEach( (item) => {
+            if (item.type === 'slide') {
+                content += self.getValue(item.title) + ' ' + self.stripHTML(self.getValue(item.content)) + ' ' + self.stripHTML(self.getValue(item.speakernotes));
+            } else if (item.type === 'deck') {
+                content += self.getValue(item.title) + ' ' + self.getValue(item.description);
+            }
+        });
+
+        return content;
+    }
 };

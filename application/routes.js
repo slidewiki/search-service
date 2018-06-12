@@ -58,22 +58,10 @@ module.exports = function(server) {
                 query: {
                     keywords: Joi.string().required(),
                     field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
-                    kind: [
-                        Joi.string().valid('deck', 'slide', 'comment'),
-                        Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
-                    ],
-                    language: [
-                        Joi.string(),
-                        Joi.array().items(Joi.string())
-                    ],
-                    user: [
-                        Joi.string(),
-                        Joi.array().items(Joi.string())
-                    ],
-                    tag: [
-                        Joi.string(),
-                        Joi.array().items(Joi.string())
-                    ],
+                    kind: Joi.array().items(Joi.string().valid('deck', 'slide', 'comment')).single(),
+                    language: Joi.array().items(Joi.string()).single(),
+                    user: Joi.array().items(Joi.string()).single(),
+                    tag: Joi.array().items(Joi.string()).single(),
                     sort: Joi.string().valid('score', 'lastUpdate').default('score'),
                     expand: Joi.boolean().default(true),
                     spellcheck: Joi.boolean().default(true),

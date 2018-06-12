@@ -33,8 +33,8 @@ let self = module.exports = {
         client.commit();
     },
 
-    query: function(queryString, requestHandler){
-        let requestUri = `${solrUri}/${requestHandler}?${queryString}`;
+    query: function(requestHandler, query){
+        let requestUri = `${solrUri}/${requestHandler}?${querystring.stringify(query)}`;
 
         // console.log(requestUri);
         return rp.get({
@@ -59,7 +59,7 @@ let self = module.exports = {
             wt: 'json'
         };
 
-        return self.query(querystring.stringify(query), 'select').then( (result) => {
+        return self.query('select', query).then( (result) => {
             return result.response.docs;
         });
     }, 
@@ -76,7 +76,7 @@ let self = module.exports = {
             rows: rows,
             wt: 'json'
         };
-        return self.query(querystring.stringify(query), 'select').then( (result) => {
+        return self.query('select', query).then( (result) => {
             return result.response;
         });
     }

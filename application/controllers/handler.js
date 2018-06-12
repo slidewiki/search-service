@@ -23,7 +23,7 @@ module.exports = {
 
     // get hierarchical query results from SOLR
     getHierachicalResults: function(request, reply){
-        searchResults.getHierachical(request.query).then( (results) => {
+        searchResults.get(request.query).then( (results) => {
             if(request.query.expand){
                 expand(results.response.docs, results.expanded);
             }
