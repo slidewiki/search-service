@@ -33,12 +33,17 @@ let self = module.exports = {
 
     getLanguageCodes(language){
 
-        // language codes from translation some with dash
-        language = language.replace('-', '_');
+        let languageCode = null;
+    
+        if (language) {
 
-        // language field indexed to SOLR
-        // if 'en' or 'EN' is given (all slides), set proper code for english
-        let languageCode = (language === 'en' || language === 'EN') ? 'en_GB' : language;
+            // language codes from translation some with dash
+            language = language.replace('-', '_');
+
+            // language field indexed to SOLR
+            // if 'en' or 'EN' is given (all slides), set proper code for english
+            languageCode = (language === 'en' || language === 'EN') ? 'en_GB' : language;
+        }
 
         return {
             short: languageCode,
