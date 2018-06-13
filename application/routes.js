@@ -56,7 +56,7 @@ module.exports = function(server) {
         config: {
             validate: {
                 query: {
-                    keywords: Joi.string().required(),
+                    keywords: Joi.string().required().default('*:*'),
                     field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
                     kind: Joi.array().items(Joi.string().valid('deck', 'slide', 'comment')).single(),
                     language: Joi.array().items(Joi.string()).single(),

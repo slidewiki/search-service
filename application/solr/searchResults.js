@@ -6,27 +6,34 @@ const _ = require('lodash');
 
 function getSolrParameters(params) {
 
-    // if keywords are not specified, then fetch all
     params.keywords = params.keywords.trim();
 
-    // prepend a specific field to match keywords
-    params.queryTerms = params.keywords;
-    if(params.field && params.keywords !== '*:*') { params.queryTerms = params.field + ':' + params.keywords; }
-
-    // if these params are arrays then make a disjunction of their values
-    if(params.kind instanceof Array) { params.kind = params.kind.join(' OR '); }
-    if(params.language instanceof Array) { params.language = params.language.join(' OR '); }
-    if(params.user instanceof Array) { params.user = params.user.join(' OR '); }
-
-    if(params.license){
-        params.license = (params.license instanceof Array) ?
-            params.license.map( (el) => { return '"' + el + '"'; }).join(' OR ') :
-            '"' + params.license + '"';
+    // order of keywords affects score
+    params.queryTerms = `${params.keywords}`;
+    if (params.keywords !== '*:*') {
+        params.queryTerms += ` "${params.keywords}"`;
     }
-    if(params.tag){
-        params.tag = (params.tag instanceof Array) ?
-            params.tag.map( (t) => {return `"${escapeSpecialChars(t)}"`;}).join(' OR ') :
-            `"${escapeSpecialChars(params.tag)}"`;
+
+    // if we are searching a specific field, prepend field name
+    if (params.field && params.keywords !== '*:*') { 
+        params.queryTerms = `${params.field}:(${params.queryTerms})`; 
+    }
+
+    // set filters if needed
+    if (params.kind) {
+        params.kind = params.kind.join(' OR ');
+    }
+    
+    if (params.language) {
+        params.language = params.language.join(' OR ');
+    }
+
+    if (params.user) {
+        params.user = params.user.join(' OR ');
+    }
+    
+    if (params.tag) {
+        params.tag = params.tag.map( (t) => {return `"${t}"`;}).join(' OR ');
     }
 
     // set sorting field
@@ -100,7 +107,7 @@ module.exports = {
             fq: getFilters(params), 
 
             // include matching score
-            fl: '*, score',
+            // fl: '*, score',
 
             // expand options
             expand: params.expand, 
@@ -120,6 +127,11 @@ module.exports = {
             // pagination options
             start: params.start, 
             rows: params.rows,
+
+            // TODO: remove debug mode and fix hl
+            debugQuery: true,
+            hl: true, 
+            'hl.fl': 'title_*, description_*, content_*, speakernotes_*',
         };
 
         // enable faceting and if needed exclude filter from facet counts

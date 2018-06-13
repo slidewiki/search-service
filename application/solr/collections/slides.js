@@ -11,9 +11,6 @@ async function prepareDocument(dbSlide){
     let rootDecks = await deckService.getSlideRootDecks(`${dbSlide._id}`);
     let rootDecksByRevision = _.groupBy(rootDecks, 'using');
 
-    let deepUsage = await deckService.getSlideDeepUsage(`${dbSlide._id}`);
-    let deepUsageByRevision = _.groupBy(deepUsage, 'using');
-
     let docs = [];
 
     // prepare solr documents for each active slide revision
@@ -21,10 +18,8 @@ async function prepareDocument(dbSlide){
         let slideRevision = getRevision(dbSlide, parseInt(revisionId));
         if(!slideRevision)  return Promise.reject(`#Error: cannot find revision ${revisionId} of slide ${dbSlide._id}`);
         
-        // TODO: examine why deepUsageByRevision[revisionId] can be null - seen from the logs
-        if(rootDecksByRevision[revisionId] && deepUsageByRevision[revisionId]){
-            let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, 
-                rootDecksByRevision[revisionId], deepUsageByRevision[revisionId]);
+        if(rootDecksByRevision[revisionId]){
+            let revisionDoc = prepareSlideRevision(dbSlide, slideRevision, rootDecksByRevision[revisionId]);
             docs.push(revisionDoc);
         }
     });
@@ -32,7 +27,7 @@ async function prepareDocument(dbSlide){
     return docs;
 }
 
-function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
+function prepareSlideRevision(dbSlide, slideRevision, rootDecks){
     let visibleRootDecks = rootDecks.filter( (deck) => !deck.hidden);
     let langCodes = getLanguageCodes(dbSlide.language);
 
@@ -52,13 +47,12 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks, deepUsage){
         usage: visibleRootDecks.map( (u) => { return `${u.id}-${u.revision}`; }),
         roots: rootDecks.map( (u) => u.id),
         active: !_.isEmpty(visibleRootDecks),
-        parents: deepUsage.map( (u) => { return `deck_${u.id}`; })
     };
 
     // add language specific fields
-    slide['title_' + langCodes.suffix] = stripHTML(getValue(slideRevision.title));
-    slide['content_' + langCodes.suffix] = stripHTML(getValue(slideRevision.content));
-    slide['speakernotes_' + langCodes.suffix] = stripHTML(getValue(slideRevision.speakernotes));
+    slide[`title_${langCodes.suffix}`] = stripHTML(getValue(slideRevision.title));
+    slide[`content_${langCodes.suffix}`] = stripHTML(getValue(slideRevision.content));
+    slide[`speakernotes_${langCodes.suffix}`] = stripHTML(getValue(slideRevision.speakernotes));
 
     return slide;
 }

@@ -39,8 +39,8 @@ function getDeckAddDoc(decktree, rootDeck, forkGroup){
     };
 
     // add language specific fields
-    doc['title_' + langCodes.suffix] = getValue(decktree.title);
-    doc['description_' + langCodes.suffix] = getValue(decktree.description);
+    doc[`title_${langCodes.suffix}`] = getValue(decktree.title);
+    doc[`description_${langCodes.suffix}`] = getValue(decktree.description);
     doc[`content_${langCodes.suffix}`] = getFirstLevelContent(decktree);
 
     return doc;
