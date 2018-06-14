@@ -46,13 +46,10 @@ function getDeckAddDoc(decktree, rootDeck, forkGroup){
     return doc;
 }
 
-function getDeckAction(currentDoc, results){
+function getDeckAction(currentDoc, existingDoc){
 
     // no document with the same solr id found
-    if(_.isEmpty(results)) return 'add';
-    
-    // only one document can be retrieved
-    let existingDoc = results[0];
+    if(!existingDoc) return 'add';
 
     if(existingDoc.db_revision_id > currentDoc.revisionId)
         return 'noOp';
@@ -62,8 +59,7 @@ function getDeckAction(currentDoc, results){
         return 'update';
 }
 
-function getDeckUpdateDoc(currentDoc, rootDeck, results){
-    let existingDoc = results[0];
+function getDeckUpdateDoc(currentDoc, rootDeck, existingDoc){
 
     // merge usage and roots arrays
     let roots = Array.from(existingDoc.roots || []);
@@ -87,27 +83,25 @@ function getDeckUpdateDoc(currentDoc, rootDeck, results){
 }
 
 async function getDeckDoc(deck){
-    let results = await solr.getById('deck', deck.id);
+    let doc = await solr.getById('deck', deck.id);
     let forkGroup = await deckService.getForkGroup(deck.id);
     let rootDeck = getRootDeck(deck.path);
     
-    let action = getDeckAction(deck, results);
+    let action = getDeckAction(deck, doc);
     if(action === 'add') {
         return getDeckAddDoc(deck, rootDeck, forkGroup);
     } else if (action === 'update') {
-        return getDeckUpdateDoc(deck, rootDeck, results);
+        return getDeckUpdateDoc(deck, rootDeck, doc);
     }
     return;
 }
 
 // ------------------- Functions for Slide transformation ---------------------- //
 
-function getSlideAction(slide, results){
-    // no document with the same solr id found
-    if(_.isEmpty(results)) return 'add';
+function getSlideAction(slide, existingDoc){
 
-    // only one document can be retrieved
-    let existingDoc = results[0];
+    // no document with the same solr id found
+    if(!existingDoc) return 'add';
 
     if(existingDoc.db_id === slide.id 
             && existingDoc.db_revision_id === slide.revisionId)
@@ -139,17 +133,15 @@ function getSlideAddDoc(slide, rootDeck){
 
     // add language specific fields
     slideDoc['title_' + langCodes.suffix] = getValue(stripHTML(slide.title));
-    slideDoc['content_' + langCodes.suffix] = getValue(stripHTML(slide.content));
+    slideDoc['content_' + langCodes.suffix] = [getValue(stripHTML(slide.content))];
     slideDoc['speakernotes_' + langCodes.suffix] = getValue(stripHTML(slide.speakernotes));
 
     return slideDoc;
 }
 
-function getSlideUpdateDoc(currentDoc, rootDeck, results){
-    let existingDoc = results[0];
+function getSlideUpdateDoc(currentDoc, rootDeck, existingDoc){
 
     // merge usage, roots and parent arrays
-
     let roots = Array.from(existingDoc.roots || []);
     roots.push(rootDeck.id);
 
@@ -169,14 +161,17 @@ function getSlideUpdateDoc(currentDoc, rootDeck, results){
     };
 }
 
-function getSlideDoc(slide){
-    return solr.getById('slide', `${slide.id}-${slide.revisionId}`).then( (results) => {
-        let rootDeck = getRootDeck(slide.path);
+async function getSlideDoc(slide){
+    let slideDoc = await solr.getById('slide', `${slide.id}-${slide.revisionId}`);
+    let rootDeck = getRootDeck(slide.path);
 
-        return (getSlideAction(slide, results) === 'add') 
-            ? getSlideAddDoc(slide, rootDeck) 
-            : getSlideUpdateDoc(slide, rootDeck, results);
-    });
+    let action = getSlideAction(slide, slideDoc);
+    if (action === 'add') {
+        return getSlideAddDoc(slide, rootDeck);
+    } else if (action === 'update') {
+        return getSlideUpdateDoc(slide, rootDeck, slideDoc);
+    }
+    return;
 }
 
 async function getDeckTreeDocs(decktree){
@@ -213,7 +208,6 @@ let self = module.exports = {
         let decktree = await deckService.getDeckTree(deck._id);
         let docs = await getDeckTreeDocs(decktree);
 
-        await solr.add(docs);
-        return solr.commit();
+        return solr.add(docs);
     }
 };

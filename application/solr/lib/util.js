@@ -108,16 +108,20 @@ let self = module.exports = {
     },
     
     getFirstLevelContent: function(decktree) {
-        let content = '';
-
-        decktree.contents.forEach( (item) => {
+        return decktree.contents.map( (item) => {
+            
             if (item.type === 'slide') {
-                content += self.getValue(item.title) + ' ' + self.stripHTML(self.getValue(item.content)) + ' ' + self.stripHTML(self.getValue(item.speakernotes));
+                return `${self.getValue(item.title)} ${self.stripHTML(self.getValue(item.content))} ${self.stripHTML(self.getValue(item.speakernotes))}`;
             } else if (item.type === 'deck') {
-                content += self.getValue(item.title) + ' ' + self.getValue(item.description);
+                return `${self.getValue(item.title)} ${self.getValue(self.getValue(item.description))}`;
             }
         });
+    }, 
 
-        return content;
+    highlight: function(docs, hl) {
+        return docs.map( (doc) => {
+            doc.hl = (hl.hasOwnProperty(doc.solr_id)) ? hl[doc.solr_id] : {};
+            return doc;
+        });
     }
 };

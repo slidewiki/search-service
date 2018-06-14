@@ -8,7 +8,7 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     searchResults = require('../solr/searchResults'),
     suggest = require('../solr/suggestions'), 
-    { expand, parseSpellcheck, parseFacets } = require('../solr/lib/util');
+    { expand, highlight, parseSpellcheck, parseFacets } = require('../solr/lib/util');
 
 module.exports = {
 
@@ -25,12 +25,16 @@ module.exports = {
     // get hierarchical query results from SOLR
     getHierachicalResults: function(request, reply){
         searchResults.get(request.query).then( (results) => {
-            if(request.query.expand){
+            if (request.query.expand) {
                 expand(results.response.docs, results.expanded);
             }
 
+            if (request.query.highlight) {
+                highlight(results.response.docs, results.highlighting);
+            }
+
             let spellcheck;
-            if(request.query.spellcheck){
+            if (request.query.spellcheck) {
                 spellcheck = parseSpellcheck(results.spellcheck);
             }
 
@@ -38,6 +42,7 @@ module.exports = {
             if(request.query.facets && results.facet_counts){
                 facets = parseFacets(results.facet_counts);
             }
+
 
             reply({
                 numFound: results.response.numFound,

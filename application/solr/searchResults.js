@@ -38,7 +38,8 @@ function getSolrParameters(params) {
 
     // set sorting field
     params.sort = (params.sort) ? params.sort : 'score';
- 
+    params.hl = (params.highlight) ? params.highlight : false;
+
     // adjust variables based on page given
     if(!_.isNil(params.page)){ 
         params.rows = 50;
@@ -106,7 +107,7 @@ module.exports = {
             q: params.queryTerms, 
             fq: getFilters(params), 
 
-            // include matching score
+            // includes matching scores, breaks field alias
             // fl: '*, score',
 
             // expand options
@@ -124,14 +125,12 @@ module.exports = {
             // sort by
             sort: `${params.sort} desc`, 
 
+            // highlight options
+            hl: params.hl,
+
             // pagination options
             start: params.start, 
             rows: params.rows,
-
-            // TODO: remove debug mode and fix hl
-            debugQuery: true,
-            hl: true, 
-            'hl.fl': 'title_*, description_*, content_*, speakernotes_*',
         };
 
         // enable faceting and if needed exclude filter from facet counts

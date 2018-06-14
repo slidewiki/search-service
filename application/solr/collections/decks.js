@@ -39,8 +39,10 @@ function prepareDocument(dbDeck){
     let deckTreePromise = deckService.getDeckTree(deckId);
 
     return Promise.all([forkGroupPromise, rootDecksPromise, deckTreePromise]).then( ([forks, roots, decktree]) => {
-        deck.isRoot = _.isEmpty(roots);
-        deck.usage = roots.filter( (deck) => !deck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
+
+        // exclude self from root decks
+        deck.isRoot = _.isEmpty(roots.filter( (rootDeck) => rootDeck.id !== deckId));
+        deck.usage = roots.filter( (rootDeck) => !rootDeck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
         deck.roots = roots.map( (u) => u.id);
         deck.origin = `deck_${_.min(forks)}`;
         deck.fork_count = forks.length;
@@ -74,10 +76,10 @@ function updateDeckVisibility(deckId, action, start, rows){
     }).then( (docs) => solrClient.add(docs));
 }
 
-function checkDeckVisibility(docs, deck){
-    if (!_.isEmpty(docs) && docs[0].active === true && deck.hidden === true) {
+function checkDeckVisibility(doc, deck){
+    if (doc && doc.active === true && deck.hidden === true) {
         return 'hide';
-    } else if (!_.isEmpty(docs) && docs[0].active === false && deck.hidden === false) {
+    } else if (doc && doc.active === false && deck.hidden === false) {
         return 'show';
     }
     return;
@@ -89,8 +91,8 @@ let self = module.exports = {
         if(!isRoot(dbDeck)) {
             updateContentsPromise = Promise.resolve();
         } else {
-            updateContentsPromise = solrClient.getById('deck', dbDeck._id).then( (docs) => {
-                let action = checkDeckVisibility(docs, dbDeck);
+            updateContentsPromise = solrClient.getById('deck', dbDeck._id).then( (doc) => {
+                let action = checkDeckVisibility(doc, dbDeck);
                 if(!action) return Promise.resolve();
 
                 let start = 0, rows = 50;

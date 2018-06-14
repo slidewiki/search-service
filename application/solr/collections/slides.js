@@ -51,7 +51,7 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks){
 
     // add language specific fields
     slide[`title_${langCodes.suffix}`] = stripHTML(getValue(slideRevision.title));
-    slide[`content_${langCodes.suffix}`] = stripHTML(getValue(slideRevision.content));
+    slide[`content_${langCodes.suffix}`] = [stripHTML(getValue(slideRevision.content))];
     slide[`speakernotes_${langCodes.suffix}`] = stripHTML(getValue(slideRevision.speakernotes));
 
     return slide;

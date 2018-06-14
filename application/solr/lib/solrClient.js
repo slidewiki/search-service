@@ -52,15 +52,16 @@ let self = module.exports = {
         }); 
     }, 
 
+    // real-time get via /get queryhandler
     getById: function(type, solrId){
+        
         let query = {
-            q: '*:*', 
-            fq: `solr_id:${type}_${solrId}`, 
+            id: `${type}_${solrId}`, 
             wt: 'json'
         };
 
-        return self.query('select', query).then( (result) => {
-            return result.response.docs;
+        return self.query('get', query).then( (result) => {
+            return result.doc;
         });
     }, 
 
