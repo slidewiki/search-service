@@ -6,13 +6,9 @@ const _ = require('lodash');
 
 function getSolrParameters(params) {
 
-    params.keywords = params.keywords.trim();
+    params.keywords = params.queryTerms = params.keywords.trim();
 
-    // order of keywords affects score
-    params.queryTerms = `${params.keywords}`;
-    if (params.keywords !== '*:*') {
-        params.queryTerms += ` "${params.keywords}"`;
-    }
+    params.queryTerms = params.keywords;
 
     // if we are searching a specific field, prepend field name
     if (params.field && params.keywords !== '*:*') { 
@@ -109,7 +105,13 @@ module.exports = {
 
             // includes matching scores, breaks field alias
             // fl: '*, score',
+            
+            // queries with 2 terms or less, require all terms to match
+            // mm: 2,
 
+            // phrase slop; consider as phrases terms that appear up to $ps distance
+            ps: 2, 
+            
             // expand options
             expand: params.expand, 
             'expand.sort': 'db_id asc, db_revision_id desc', 
