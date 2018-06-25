@@ -54,9 +54,7 @@ let self = module.exports = {
 
             // fix if necessary
             suffix = fixedLanguageCodes[language.toLowerCase()] || language;
-            if (_.includes(stemmerSupportedLanguages, language)) {
-                suffix = language;
-            } else {
+            if (!_.includes(stemmerSupportedLanguages, suffix)) {
                 suffix = 'general';
             }
         }
