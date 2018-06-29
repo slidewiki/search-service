@@ -17,8 +17,6 @@ services:
       - LETSENCRYPT_EMAIL=meissner@informatik.uni-leipzig.de
       - DATABASE_URL=mongodb
       - DATABASE_PORT=27017
-      - SERVICE_URL_DECK=http://deckservice.experimental.slidewiki.org
-      - SERVICE_URL_USER=http://userservice.experimental.slidewiki.org
       - SOLR_CORE=swikcore
       - AGENDA_JOBS_COLLECTION=agendaJobs
       - AGENDA_JOBS_CONCURRENCY=2
@@ -35,7 +33,6 @@ services:
       - DATABASE_URL=mongodb
       - DATABASE_PORT=27017
       - SERVICE_URL_DECK=http://deckservice.experimental.slidewiki.org
-      - SERVICE_URL_USER=http://userservice.experimental.slidewiki.org
       - SOLR_CORE=swikcore
       - AGENDA_JOBS_COLLECTION=agendaJobs
       - AGENDA_JOBS_CONCURRENCY=2

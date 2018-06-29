@@ -1,7 +1,6 @@
 'use strict';
 
 const MongoStream = require('mongo-trigger'),
-    users = require('../solr/collections/users'),
     mongoConfig = require('../configuration').mongoConfig;
 const saveJob = require('../lib/saveJob');
 const _ = require('lodash');
