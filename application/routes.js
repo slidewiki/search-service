@@ -56,29 +56,18 @@ module.exports = function(server) {
         config: {
             validate: {
                 query: {
-                    keywords: Joi.string().required(),
+                    keywords: Joi.string().required().default('*:*'),
                     field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
-                    kind: [
-                        Joi.string().valid('deck', 'slide', 'comment'),
-                        Joi.array().items(Joi.string().valid('deck', 'slide', 'comment'))
-                    ],
-                    language: [
-                        Joi.string(),
-                        Joi.array().items(Joi.string())
-                    ],
-                    user: [
-                        Joi.string(),
-                        Joi.array().items(Joi.string())
-                    ],
-                    tag: [
-                        Joi.string(),
-                        Joi.array().items(Joi.string())
-                    ],
+                    kind: Joi.array().items(Joi.string().valid('deck', 'slide', 'comment')).single(),
+                    language: Joi.array().items(Joi.string()).single(),
+                    user: Joi.array().items(Joi.string()).single(),
+                    tag: Joi.array().items(Joi.string()).single(),
                     sort: Joi.string().valid('score', 'lastUpdate').default('score'),
                     expand: Joi.boolean().default(true),
                     spellcheck: Joi.boolean().default(true),
                     facets: Joi.boolean().default(false),
                     facet_exclude: Joi.string().valid('kind', 'language', 'user', 'tags'),
+                    highlight: Joi.boolean().default(false),
                     page: Joi.number().integer().min(1).default(1)
                 }
             },

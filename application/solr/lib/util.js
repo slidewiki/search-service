@@ -111,4 +111,26 @@ let self = module.exports = {
         let active = self.getActiveRevision(deck);
         return _.isEmpty(active.usage);
     },
+
+    getValue: function(value) {
+        return (value || '');
+    },
+    
+    getFirstLevelContent: function(decktree) {
+        return decktree.contents.map( (item) => {
+            
+            if (item.type === 'slide') {
+                return `${self.getValue(item.title)} ${self.stripHTML(self.getValue(item.content))} ${self.stripHTML(self.getValue(item.speakernotes))}`;
+            } else if (item.type === 'deck') {
+                return `${self.getValue(item.title)} ${self.getValue(self.getValue(item.description))}`;
+            }
+        });
+    }, 
+
+    highlight: function(docs, hl) {
+        return docs.map( (doc) => {
+            doc.hl = (hl.hasOwnProperty(doc.solr_id)) ? hl[doc.solr_id] : {};
+            return doc;
+        });
+    }
 };
