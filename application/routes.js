@@ -68,7 +68,8 @@ module.exports = function(server) {
                     facets: Joi.boolean().default(false),
                     facet_exclude: Joi.string().valid('kind', 'language', 'user', 'tags'),
                     highlight: Joi.boolean().default(false),
-                    page: Joi.number().integer().min(1).default(1)
+                    page: Joi.number().integer().min(1).default(1), 
+                    pageSize: Joi.number().integer().min(1).default(50),
                 }
             },
             tags: ['api'],

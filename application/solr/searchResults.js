@@ -38,7 +38,7 @@ function getSolrParameters(params) {
 
     // adjust variables based on page given
     if(!_.isNil(params.page)){ 
-        params.rows = 50;
+        params.rows = params.pageSize;
         params.start = (params.page - 1) * params.rows;
     }
 
