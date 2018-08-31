@@ -3,6 +3,7 @@
 const htmlToText = require('html-to-text');
 const _ = require('lodash');
 const stemmerSupportedLanguages = ['en_GB', 'de_DE', 'el_GR', 'it_IT', 'pt_PT', 'sr_RS', 'es_ES', 'nl_NL'];
+const qs = require('querystring');
 
 // TODO (?) remove this once language codes have been fixed in code and database
 const fixedLanguageCodes = {
@@ -98,11 +99,17 @@ let self = module.exports = {
 
     parseFacets: function(facets){
         // let facetsObj = {};
-        
+        let facetFields = facets.facet_fields;
+
         // transform facets from array to object
-        // Object.keys(facets.facet_fields).forEach( (facetName) => {
-        //     facetsObj[facetName] = _.assign.apply(_, facets.facet_fields[facetName]);
-        // });
+        Object.keys(facetFields).forEach( (facetName) => {
+            facetFields[facetName].forEach( (item) => {
+                let key = Object.keys(item)[0];
+                item.key = key;
+                item.value = item[key];
+                delete item[key];
+            });
+        });
 
         return facets.facet_fields;
     }, 
@@ -132,5 +139,23 @@ let self = module.exports = {
             doc.hl = (hl.hasOwnProperty(doc.solr_id)) ? hl[doc.solr_id] : {};
             return doc;
         });
+    }, 
+
+    getLinks: function(params, hasMore) {
+
+        let links = {};
+        let page = params.page;
+
+        if (hasMore) {
+            params.page = page + 1;
+            links.next = `/search/v2?${qs.stringify(params)}`;
+        }
+
+        if (page > 1) {
+            params.page = page - 1;
+            links.previous = `/search/v2?${qs.stringify(params)}`;
+        }
+
+        return links;
     }
 };

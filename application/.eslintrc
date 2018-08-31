@@ -6,7 +6,8 @@
       "blockBindings": true,
       "arrowFunctions": true,
       "defaultParams": true,
-      "forOf": true
+      "forOf": true,
+      "experimentalObjectRestSpread": true
       }
     },
   "env": {

@@ -97,7 +97,7 @@ function getFacetFields(params) {
 
 module.exports = {
     get: function(queryParams) {
-        let params = getSolrParameters(queryParams);
+        let params = getSolrParameters({...queryParams});
 
         let query = {
             q: params.queryTerms, 
