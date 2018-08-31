@@ -76,7 +76,7 @@ function getFilters(params) {
     }
 
     if(params.user) { 
-        filters.push(`{!tag=usersFilter}contributors:(${params.user})`); 
+        filters.push(`{!tag=usersFilter}creator:(${params.user})`); 
     }
 
     if(params.tag) { 
@@ -90,7 +90,7 @@ function getFacetFields(params) {
     return [
         `${(params.facet_exclude === 'kind') ? '{!ex=kindFilter}kind' : 'kind'}`,
         `${(params.facet_exclude === 'language') ? '{!ex=languageFilter}language' : 'language'}`,
-        `${(params.facet_exclude === 'user') ? '{!ex=usersFilter}contributors' : 'contributors'}`,
+        `${(params.facet_exclude === 'user') ? '{!ex=usersFilter}creator' : 'creator'}`,
         `${(params.facet_exclude === 'tags') ? '{!ex=tagsFilter}tags' : 'tags'}`,
     ];
 }
