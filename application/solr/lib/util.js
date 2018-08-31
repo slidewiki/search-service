@@ -98,11 +98,22 @@ let self = module.exports = {
 
     parseFacets: function(facets){
         // let facetsObj = {};
-        
+        let facetFields = facets.facet_fields;
+
         // transform facets from array to object
-        // Object.keys(facets.facet_fields).forEach( (facetName) => {
-        //     facetsObj[facetName] = _.assign.apply(_, facets.facet_fields[facetName]);
-        // });
+        Object.keys(facetFields).forEach( (facetName) => {
+            facetFields[facetName].forEach( (item) => {
+                let key = Object.keys(item)[0];
+                item.key = key;
+                item.value = item[key];
+                delete item[key];
+                // item = {
+                //     key: key, 
+                //     value: item[key],
+                // };
+                // console.log(item);
+            });
+        });
 
         return facets.facet_fields;
     }, 
