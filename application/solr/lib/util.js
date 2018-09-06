@@ -65,7 +65,7 @@ let self = module.exports = {
 
     expand: function(docs, expanded){
         return docs.map( (doc) => {
-            doc.forks = (expanded.hasOwnProperty(doc.solr_id)) ? expanded[doc.solr_id].docs : [];
+            doc.forks = (expanded.hasOwnProperty(doc.origin)) ? expanded[doc.origin].docs : [];
             return doc;
         });
     }, 
