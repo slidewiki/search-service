@@ -114,6 +114,13 @@ let self = module.exports = {
         return facets.facet_fields;
     }, 
 
+    parseJsonFacets: function(facets) {
+        facets.language = facets.language.buckets;
+        facets.creator = facets.creator.buckets;
+        facets.tags = facets.tags.buckets;
+        return facets;
+    },
+
     isRoot: function(deck){
         let active = self.getActiveRevision(deck);
         return _.isEmpty(active.usage);

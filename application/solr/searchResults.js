@@ -62,8 +62,8 @@ function getFilters(params) {
     let filters = [
         'active: true',
 
-        // collapse on origin field (group by)
-        '{!collapse field=origin sort="db_id asc, db_revision_id desc"}',
+        // collapse results in origin field
+        '{!tag=collapseFilter}{!collapse field=origin sort="db_id asc, db_revision_id desc"}'
     ];
 
     // use tagged filter clauses, so we can exclude them when faceting
@@ -95,6 +95,47 @@ function getFacetFields(params) {
     ];
 }
 
+function getFacets(exclude) {
+    return `{
+        language: {
+            type: terms,
+            field: language,
+            facet: {
+                rowCount: "unique(origin)"
+            },
+            domain: {
+                excludeTags: [collapseFilter ${ (exclude === 'language') ? ', languageFilter' : ''}]
+            },
+            limit: 100,
+            sort:{rowCount:desc}
+        },
+        creator: {
+            type: terms,
+            field: creator,
+            facet: {
+                rowCount: "unique(origin)"
+            },
+            domain: {
+                excludeTags: [collapseFilter ${ (exclude === 'user') ? ', usersFilter' : ''}]
+            },
+            limit: 100,
+            sort:{rowCount:desc}
+        },
+        tags: {
+            type: terms,
+            field: tags,
+            facet: {
+                rowCount: "unique(origin)"
+            },
+            domain: {
+                excludeTags: [collapseFilter ${ (exclude === 'tag') ? ', tagsFilter' : ''}]
+            },
+            limit: 100,
+            sort:{rowCount:desc}
+        }
+    }`;
+}
+
 module.exports = {
     get: function(queryParams) {
         let params = getSolrParameters({...queryParams});
@@ -120,9 +161,9 @@ module.exports = {
             // spellcheck suggestion options
             spellcheck: params.spellcheck,
             'spellcheck.q': params.keywords,
-
+            
             // facet options
-            facet: params.facets,
+            facet: false,
 
             // sort by
             sort: `${params.sort} desc`, 
@@ -137,9 +178,10 @@ module.exports = {
 
         // enable faceting and if needed exclude filter from facet counts
         if(params.facets){
-            query['facet.field'] = getFacetFields(params);
+            // query['facet.field'] = getFacetFields(params);
+            query['json.facet'] = getFacets(params.facet_exclude);
         }
 
-        return solrClient.query('swSearch', query);
+        return solrClient.query('swSearch', query, 'post');
     }
 };

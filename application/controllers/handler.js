@@ -8,7 +8,7 @@ Handles the requests by executing stuff and replying to the client. Uses promise
 const boom = require('boom'), //Boom gives us some predefined http codes and proper responses
     searchResults = require('../solr/searchResults'),
     suggest = require('../solr/suggestions'), 
-    { expand, highlight, parseSpellcheck, parseFacets, getLinks } = require('../solr/lib/util');
+    { expand, highlight, parseSpellcheck, parseFacets, parseJsonFacets, getLinks } = require('../solr/lib/util');
 
 module.exports = {
 
@@ -39,8 +39,9 @@ module.exports = {
             }
 
             let facets;
-            if(request.query.facets && results.facet_counts){
-                facets = parseFacets(results.facet_counts);
+            if(request.query.facets && results.facets){
+                // facets = parseFacets(results.facet_counts);
+                facets = parseJsonFacets(results.facets);
             }
 
             let hasMore = results.response.numFound > results.response.start + request.query.pageSize;
@@ -55,8 +56,7 @@ module.exports = {
                 docs: results.response.docs
             });
         }).catch( (error) => {
-            console.log(error);
-            // request.log('searchResults.get', error);
+            request.log('searchResults.get', error.message);
             reply(boom.badImplementation());
         });
     },
