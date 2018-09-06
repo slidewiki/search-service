@@ -91,7 +91,7 @@ function getFacetFields(params) {
         `${(params.facet_exclude === 'kind') ? '{!ex=kindFilter}kind' : 'kind'}`,
         `${(params.facet_exclude === 'language') ? '{!ex=languageFilter}language' : 'language'}`,
         `${(params.facet_exclude === 'user') ? '{!ex=usersFilter}creator' : 'creator'}`,
-        `${(params.facet_exclude === 'tags') ? '{!ex=tagsFilter}tags' : 'tags'}`,
+        `${(params.facet_exclude === 'tag') ? '{!ex=tagsFilter}tags' : 'tags'}`,
     ];
 }
 
