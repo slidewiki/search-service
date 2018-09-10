@@ -190,10 +190,11 @@ async function getDeckTreeDocs(decktree){
         if (item.type === 'deck') {
             let subDocs = await getDeckTreeDocs(item);
             Array.prototype.push.apply(docs, subDocs);
-        } else if (item.type === 'slide') {
-            let doc = await getSlideDoc(item);
-            docs.push(doc);
         }
+        // } else if (item.type === 'slide') {
+        //     let doc = await getSlideDoc(item);
+        //     docs.push(doc);
+        // }
     }
 
     return docs;
