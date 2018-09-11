@@ -25,7 +25,7 @@ function prepareDocument(dbDeck){
         language: langCodes.short,
         creator: dbDeck.user,
         contributors: dbDeck.contributors.map( (contr) => { return contr.user; }),
-        tags: (activeRevision.tags || []).map( (tag) => { return tag.tagName; }),
+        tags: (_.compact(activeRevision.tags) || []).map( (tag) => { return tag.tagName; }),
         revision_count: dbDeck.revisions.length
     };
 
