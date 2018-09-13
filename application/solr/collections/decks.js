@@ -118,7 +118,7 @@ let self = module.exports = {
     archive: function(deckId){
         let solrDeckId = `deck_${deckId}`;
 
-        let deleteContentsPromise = solrClient.delete(`roots:${solrDeckId}`);
+        let deleteContentsPromise = solrClient.delete(`roots:${deckId}`);
         let deleteRootPromise = solrClient.delete(`solr_id:${solrDeckId}`);
 
         return Promise.all([deleteRootPromise, deleteContentsPromise]);
