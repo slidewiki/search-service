@@ -88,10 +88,10 @@ function getFilters(params) {
 
 function getFacetFields(params) {
     return [
-        `${(params.facet_exclude === 'kind') ? '{!ex=kindFilter}kind' : 'kind'}`,
-        `${(params.facet_exclude === 'language') ? '{!ex=languageFilter}language' : 'language'}`,
-        `${(params.facet_exclude === 'user') ? '{!ex=usersFilter}creator' : 'creator'}`,
-        `${(params.facet_exclude === 'tag') ? '{!ex=tagsFilter}tags' : 'tags'}`,
+        '{!ex=kindFilter}kind',
+        '{!ex=languageFilter}language',
+        '{!ex=usersFilter}creator',
+        '{!ex=tagsFilter}tags',
     ];
 }
 
@@ -104,7 +104,7 @@ function getFacets(exclude) {
                 rowCount: "unique(origin)"
             },
             domain: {
-                excludeTags: [collapseFilter ${ (exclude === 'language') ? ', languageFilter' : ''}]
+                excludeTags: [collapseFilter ${ (exclude.includes('language')) ? ', languageFilter' : ''}]
             },
             limit: 100,
             sort:{rowCount:desc}
@@ -116,7 +116,7 @@ function getFacets(exclude) {
                 rowCount: "unique(origin)"
             },
             domain: {
-                excludeTags: [collapseFilter ${ (exclude === 'user') ? ', usersFilter' : ''}]
+                excludeTags: [collapseFilter ${ (exclude.includes('user')) ? ', usersFilter' : ''}]
             },
             limit: 100,
             sort:{rowCount:desc}
@@ -128,7 +128,7 @@ function getFacets(exclude) {
                 rowCount: "unique(origin)"
             },
             domain: {
-                excludeTags: [collapseFilter ${ (exclude === 'tag') ? ', tagsFilter' : ''}]
+                excludeTags: [collapseFilter ${ (exclude.includes('tag')) ? ', tagsFilter' : ''}]
             },
             limit: 100,
             sort:{rowCount:desc}
@@ -179,7 +179,7 @@ module.exports = {
         // enable faceting and if needed exclude filter from facet counts
         if(params.facets){
             // query['facet.field'] = getFacetFields(params);
-            query['json.facet'] = getFacets(params.facet_exclude);
+            query['json.facet'] = getFacets(params.facet_exclude || []);
         }
 
         return solrClient.query('swSearch', query, 'post');
