@@ -22,6 +22,9 @@ let agenda = new Agenda({
 
     // number of a specific job running concurrently
     defaultConcurrency: agendaConfig.AGENDA_JOBS_CONCURRENCY,
+
+    // max number jobs that can be locked
+    lockLimit: agendaConfig.AGENDA_JOBS_LOCK_LIMIT,
 });
 
 let jobTypes = process.env.JOB_TYPES ? process.env.JOB_TYPES.split(',') : [];
@@ -48,6 +51,9 @@ if (jobTypes.length) {
         console.warn('Job %s (%s) for %s %s failed', job.attrs.name, job.attrs.data.event, job.attrs.data.type, job.attrs.data.id);
         console.warn(err.message);
     });
+
+    // frequency at which agenda will query the database looking for jobs
+    agenda.processEvery('1 minute');
 
     process.on('SIGTERM', gracefulStop);
     process.on('SIGINT' , gracefulStop);
