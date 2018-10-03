@@ -95,7 +95,7 @@ function getFacetFields(params) {
     ];
 }
 
-function getFacets(exclude) {
+function getFacets(exclude, facetPrefixField, facetPrefixValue) {
     return `{
         language: {
             type: terms,
@@ -106,7 +106,7 @@ function getFacets(exclude) {
             domain: {
                 excludeTags: [collapseFilter ${ (exclude.includes('language')) ? ', languageFilter' : ''}]
             },
-            limit: 100,
+            limit: -1,
             sort:{rowCount:desc}
         },
         creator: {
@@ -118,7 +118,8 @@ function getFacets(exclude) {
             domain: {
                 excludeTags: [collapseFilter ${ (exclude.includes('user')) ? ', usersFilter' : ''}]
             },
-            limit: 100,
+            ${ (facetPrefixField === 'user') ? `prefix: "${facetPrefixValue}"` : ''},
+            limit: -1,
             sort:{rowCount:desc}
         },
         tags: {
@@ -130,7 +131,8 @@ function getFacets(exclude) {
             domain: {
                 excludeTags: [collapseFilter ${ (exclude.includes('tag')) ? ', tagsFilter' : ''}]
             },
-            limit: 100,
+            ${ (facetPrefixField === 'tag') ? `prefix: "${facetPrefixValue}"` : ''},
+            limit: -1,
             sort:{rowCount:desc}
         }
     }`;
@@ -179,7 +181,7 @@ module.exports = {
         // enable faceting and if needed exclude filter from facet counts
         if(params.facets){
             // query['facet.field'] = getFacetFields(params);
-            query['json.facet'] = getFacets(params.facet_exclude || []);
+            query['json.facet'] = getFacets(params.facet_exclude || [], params.facet_prefix_field, params.facet_prefix_value);
         }
 
         return solrClient.query('swSearch', query, 'post');

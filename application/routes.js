@@ -67,6 +67,8 @@ module.exports = function(server) {
                     spellcheck: Joi.boolean().default(true),
                     facets: Joi.boolean().default(false),
                     facet_exclude: Joi.array().items(Joi.string().valid('kind', 'language', 'user', 'tag')).single(),
+                    facet_prefix_field: Joi.string().valid('language', 'user', 'tag'),
+                    facet_prefix_value: Joi.string(),
                     highlight: Joi.boolean().default(false),
                     page: Joi.number().integer().min(1).default(1), 
                     pageSize: Joi.number().integer().min(1).default(50),
