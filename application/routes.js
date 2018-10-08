@@ -60,7 +60,7 @@ module.exports = function(server) {
                     field: Joi.string().valid('title', 'description', 'content', 'speakernotes'),
                     kind: Joi.array().items(Joi.string().valid('deck', 'slide', 'comment')).single(),
                     language: Joi.array().items(Joi.string()).single(),
-                    user: Joi.array().items(Joi.string()).single(),
+                    user: Joi.array().items(Joi.number().integer()).single(),
                     tag: Joi.array().items(Joi.string()).single(),
                     sort: Joi.string().valid('score', 'lastUpdate').default('score'),
                     expand: Joi.boolean().default(true),
