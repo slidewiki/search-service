@@ -106,7 +106,7 @@ function getFacets(exclude, facetPrefixField, facetPrefixValue) {
             domain: {
                 excludeTags: [collapseFilter ${ (exclude.includes('language')) ? ', languageFilter' : ''}]
             },
-            limit: -1,
+            limit: 50,
             sort:{rowCount:desc}
         },
         creator: {
@@ -119,7 +119,7 @@ function getFacets(exclude, facetPrefixField, facetPrefixValue) {
                 excludeTags: [collapseFilter ${ (exclude.includes('user')) ? ', usersFilter' : ''}]
             },
             ${ (facetPrefixField === 'user') ? `prefix: "${facetPrefixValue}"` : ''},
-            limit: -1,
+            limit: 50,
             sort:{rowCount:desc}
         },
         tags: {
@@ -132,7 +132,7 @@ function getFacets(exclude, facetPrefixField, facetPrefixValue) {
                 excludeTags: [collapseFilter ${ (exclude.includes('tag')) ? ', tagsFilter' : ''}]
             },
             ${ (facetPrefixField === 'tag') ? `prefix: "${facetPrefixValue}"` : ''},
-            limit: -1,
+            limit: 50,
             sort:{rowCount:desc}
         }
     }`;
