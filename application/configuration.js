@@ -17,6 +17,7 @@ let solrConfig = {};
 solrConfig.HOST = (!co.isEmpty(process.env.SOLR_HOST)) ? process.env.SOLR_HOST : '';
 solrConfig.PORT = (!co.isEmpty(process.env.SOLR_CONFIG_PORT)) ? process.env.SOLR_CONFIG_PORT : '8983';
 solrConfig.CORE = (!co.isEmpty(process.env.SOLR_CORE)) ? process.env.SOLR_CORE : 'swikcore';
+solrConfig.SKILLS_CORE = (!co.isEmpty(process.env.SKILLS_CORE)) ? process.env.SKILLS_CORE : 'swikskills';
 solrConfig.PATH = (!co.isEmpty(process.env.SOLR_PATH)) ? process.env.SOLR_PATH : '/solr';
 solrConfig.PROTOCOL = (!co.isEmpty(process.env.SOLR_PROTOCOL)) ? process.env.SOLR_PROTOCOL : 'http';
 //local testing SOLR config:
