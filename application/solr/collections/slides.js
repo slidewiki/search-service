@@ -42,7 +42,7 @@ function prepareSlideRevision(dbSlide, slideRevision, rootDecks){
         language: langCodes.short,
         creator: dbSlide.user,
         contributors: dbSlide.contributors.map( (contr) => { return contr.user; }),
-        tags: (slideRevision.tags || []).map( (tag) => { return tag.tagName; }),
+        tags: (_.compact(slideRevision.tags) || []).map( (tag) => { return tag.tagName; }),
         origin: `slide_${dbSlide._id}`, 
         usage: visibleRootDecks.map( (u) => { return `${u.id}-${u.revision}`; }),
         roots: rootDecks.map( (u) => u.id),

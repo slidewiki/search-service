@@ -114,6 +114,52 @@ let self = module.exports = {
         return facets.facet_fields;
     }, 
 
+    parseJsonFacets: function(facets) {
+        facets.language = facets.language.buckets;
+        facets.creator = facets.creator.buckets;
+        facets.tags = facets.tags.buckets;
+        return facets;
+    },
+
+    mergeSelectedFacets: function(facets, query) {
+        let fieldToFacet = {
+            language: 'language', 
+            user: 'creator',
+            tag: 'tags',
+        }; 
+
+        // For facet fields that are excluded
+        (query.facet_exclude || []).forEach( (excludedField) => {
+
+            let selectedValues = query[excludedField];
+            let facetName = fieldToFacet[excludedField];
+            let selectedFacetName = `selected${facetName}`;
+
+            // Add selected values to facets
+            (selectedValues || []).forEach( (selected) => {
+
+                // check if selected item is present in facet results
+                let index = facets[facetName].buckets.findIndex( (item) => {
+                    return item.val === selected;
+                });
+
+                if (index === -1) {
+
+                    // find selected item in separate facet only for selected items
+                    let found = facets[selectedFacetName].buckets.find( (item) => {
+                        return item.val === selected;
+                    });
+
+                    if (found) {                      
+                        facets[facetName].buckets.push(found);
+                    }
+                }
+            });
+        });
+
+        return facets;
+    },
+
     isRoot: function(deck){
         let active = self.getActiveRevision(deck);
         return _.isEmpty(active.usage);

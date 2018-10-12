@@ -62,8 +62,8 @@ function getFilters(params) {
     let filters = [
         'active: true',
 
-        // collapse on origin field (group by)
-        '{!collapse field=origin sort="db_id asc, db_revision_id desc"}',
+        // collapse results in origin field
+        '{!tag=collapseFilter}{!collapse field=origin sort="db_id asc, db_revision_id desc"}'
     ];
 
     // use tagged filter clauses, so we can exclude them when faceting
@@ -88,11 +88,68 @@ function getFilters(params) {
 
 function getFacetFields(params) {
     return [
-        `${(params.facet_exclude === 'kind') ? '{!ex=kindFilter}kind' : 'kind'}`,
-        `${(params.facet_exclude === 'language') ? '{!ex=languageFilter}language' : 'language'}`,
-        `${(params.facet_exclude === 'user') ? '{!ex=usersFilter}creator' : 'creator'}`,
-        `${(params.facet_exclude === 'tag') ? '{!ex=tagsFilter}tags' : 'tags'}`,
+        '{!ex=kindFilter}kind',
+        '{!ex=languageFilter}language',
+        '{!ex=usersFilter}creator',
+        '{!ex=tagsFilter}tags',
     ];
+}
+function getJsonFacet(facet, excludedFields, exclude=true, facetPrefixField, facetPrefixValue) {
+    let excludeTags = [ 'collapseFilter' ];
+    let facetName = facet.field;
+    let limit = 50;
+
+    if (excludedFields.includes(facet.excludeField) && !exclude) {
+        facetName = `selected${facetName}`;
+        limit = -1;
+    }
+
+    if (excludedFields.includes(facet.excludeField) && exclude) {
+        excludeTags.push(facet.excludeFilter);
+    }
+
+    let facetDef = {
+        type: 'terms',
+        field: facet.field,
+        facet: {
+            rowCount: 'unique(origin)'
+        },
+        domain: {
+            excludeTags: excludeTags
+        },
+        limit: limit,
+        sort:{ 
+            rowCount: 'desc' 
+        }
+    };
+
+    if (facetPrefixField === facet.excludeField) {
+        facetDef.prefix = facetPrefixValue;
+    }
+
+    return facetDef;
+}
+
+function getFacets(excludedFields, facetPrefixField, facetPrefixValue) {
+    let facetDetails = [
+        { field: 'language', excludeField: 'language', excludeFilter: 'languageFilter'},
+        { field: 'creator', excludeField: 'user', excludeFilter: 'usersFilter'},
+        { field: 'tags', excludeField: 'tag', excludeFilter: 'tagsFilter' },
+    ];
+
+    let jsonFacets = {};
+    facetDetails.forEach( (facet) => {
+
+        // facet definition
+        jsonFacets[facet.field] = getJsonFacet(facet, excludedFields, true, facetPrefixField, facetPrefixValue);
+            
+        // if facet field is excluded, also add facet definition without excluding filter to get selected facet counts
+        if (excludedFields.includes(facet.excludeField)) {
+            jsonFacets[`selected${facet.field}`] = getJsonFacet(facet, excludedFields, false, facetPrefixField, facetPrefixValue);
+        }
+    });
+
+    return jsonFacets;
 }
 
 module.exports = {
@@ -120,9 +177,9 @@ module.exports = {
             // spellcheck suggestion options
             spellcheck: params.spellcheck,
             'spellcheck.q': params.keywords,
-
+            
             // facet options
-            facet: params.facets,
+            facet: false,
 
             // sort by
             sort: `${params.sort} desc`, 
@@ -137,9 +194,11 @@ module.exports = {
 
         // enable faceting and if needed exclude filter from facet counts
         if(params.facets){
-            query['facet.field'] = getFacetFields(params);
+            // query['facet.field'] = getFacetFields(params);
+            let jsonFacets = getFacets(params.facet_exclude || [], params.facet_prefix_field, params.facet_prefix_value);
+            query['json.facet'] = JSON.stringify(jsonFacets);
         }
 
-        return solrClient.query('swSearch', query);
+        return solrClient.query('swSearch', query, 'post');
     }
 };

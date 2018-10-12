@@ -22,14 +22,14 @@ function getDeckAddDoc(decktree, rootDeck, forkGroup){
     let doc = {
         solr_id: `deck_${decktree.id}`,
         db_id: decktree.id,
-        db_revision_id: decktree.revisionId,
+        db_revision_id: decktree.revision,
         kind: 'deck',
         timestamp: decktree.timestamp,
         lastUpdate: decktree.lastUpdate,
         language: langCodes.short,
         creator: decktree.owner,
         contributors: decktree.contributors,
-        tags: (decktree.tags || []),
+        tags: (_.compact(decktree.tags) || []),
         isRoot: (decktree.path.length === 1), 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
         roots: rootDeck.id, 
@@ -51,9 +51,9 @@ function getDeckAction(currentDoc, existingDoc){
     // no document with the same solr id found
     if(!existingDoc) return 'add';
 
-    if(existingDoc.db_revision_id > currentDoc.revisionId)
+    if(existingDoc.db_revision_id > currentDoc.revision)
         return 'noOp';
-    else if(existingDoc.db_revision_id < currentDoc.revisionId)
+    else if(existingDoc.db_revision_id < currentDoc.revision)
         return 'add';
     else
         return 'update';
@@ -104,7 +104,7 @@ function getSlideAction(slide, existingDoc){
     if(!existingDoc) return 'add';
 
     if(existingDoc.db_id === slide.id 
-            && existingDoc.db_revision_id === slide.revisionId)
+            && existingDoc.db_revision_id === slide.revision)
         return 'update';
     else 
         return 'add';
@@ -115,16 +115,16 @@ function getSlideAddDoc(slide, rootDeck){
     let langCodes = getLanguageCodes(slide.language);
 
     let slideDoc = {
-        solr_id: `slide_${slide.id}-${slide.revisionId}`,
+        solr_id: `slide_${slide.id}-${slide.revision}`,
         db_id: slide.id,
-        db_revision_id: slide.revisionId,
+        db_revision_id: slide.revision,
         timestamp: slide.timestamp,
         lastUpdate: slide.lastUpdate,
         kind: 'slide',
         language: langCodes.short,
         creator: slide.owner,
         contributors: slide.contributors,
-        tags: slide.tags,
+        tags: _.compact(slide.tags),
         origin: `slide_${slide.id}`, 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck), 
         roots: rootDeck.id,
@@ -162,7 +162,7 @@ function getSlideUpdateDoc(currentDoc, rootDeck, existingDoc){
 }
 
 async function getSlideDoc(slide){
-    let slideDoc = await solr.getById('slide', `${slide.id}-${slide.revisionId}`);
+    let slideDoc = await solr.getById('slide', `${slide.id}-${slide.revision}`);
     let rootDeck = getRootDeck(slide.path);
 
     let action = getSlideAction(slide, slideDoc);
@@ -190,10 +190,11 @@ async function getDeckTreeDocs(decktree){
         if (item.type === 'deck') {
             let subDocs = await getDeckTreeDocs(item);
             Array.prototype.push.apply(docs, subDocs);
-        } else if (item.type === 'slide') {
-            let doc = await getSlideDoc(item);
-            docs.push(doc);
         }
+        // } else if (item.type === 'slide') {
+        //     let doc = await getSlideDoc(item);
+        //     docs.push(doc);
+        // }
     }
 
     return docs;

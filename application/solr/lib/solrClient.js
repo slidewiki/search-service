@@ -33,12 +33,25 @@ let self = module.exports = {
         client.commit();
     },
 
-    query: function(requestHandler, query){
-        let requestUri = `${solrUri}/${requestHandler}?${querystring.stringify(query)}`;
+    query: function(requestHandler, query, method='get'){
+        let uri = `${solrUri}/${requestHandler}`;
+        let queryparams = querystring.stringify(query);
 
-        // console.log(requestUri);
+        // console.log(`${uri}?${queryparams}`);
+
+        if (method === 'post') {
+            return rp.post({
+                uri: uri,
+                headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                },
+                json: true,
+                body: queryparams,
+            });
+        }
+
         return rp.get({
-            uri: requestUri, 
+            uri: `${uri}?${queryparams}`, 
             json: true
         });
     },
