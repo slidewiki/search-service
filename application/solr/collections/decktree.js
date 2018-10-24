@@ -20,7 +20,7 @@ function getDeckAddDoc(decktree, rootDeck, forkGroup){
     let langCodes = getLanguageCodes(decktree.language);
 
     let doc = {
-        solr_id: `deck_${decktree.id}`,
+        solr_id: `deck_${decktree.id}_${decktree.language}`,
         db_id: decktree.id,
         db_revision_id: decktree.revision,
         kind: 'deck',
@@ -41,7 +41,11 @@ function getDeckAddDoc(decktree, rootDeck, forkGroup){
     // add language specific fields
     doc[`title_${langCodes.suffix}`] = getValue(decktree.title);
     doc[`description_${langCodes.suffix}`] = getValue(decktree.description);
-    doc[`content_${langCodes.suffix}`] = getFirstLevelContent(decktree);
+
+    let languageContent = getFirstLevelContent(decktree);
+    for (const languageSuffix in languageContent) {
+        doc[`content_${languageSuffix}`] = languageContent[languageSuffix]; 
+    }
 
     return doc;
 }
@@ -83,7 +87,7 @@ function getDeckUpdateDoc(currentDoc, rootDeck, existingDoc){
 }
 
 async function getDeckDoc(deck){
-    let doc = await solr.getById('deck', deck.id);
+    let doc = await solr.getById('deck', `${deck.id}_${deck.language}`);
     let forkGroup = await deckService.getForkGroup(deck.id);
     let rootDeck = getRootDeck(deck.path);
     
@@ -204,11 +208,21 @@ let self = module.exports = {
     index: async function(deck){
 
         // we are indexing only decktrees starting from root decks
-        if(!isRoot(deck)) return Promise.resolve();
+        let usage = await deckService.getDeckUsage(deck._id);
+        if (!_.isEmpty(usage)) {
+            return Promise.resolve();
+        }
 
         let decktree = await deckService.getDeckTree(deck._id);
-        let docs = await getDeckTreeDocs(decktree);
+        let docs = await getDeckTreeDocs(decktree); 
 
+        for (const variant of decktree.variants.filter( (v) => !v.original)) {
+            decktree = await deckService.getDeckTree(deck._id, variant.language);
+            decktree.language = variant.language;
+            let variantDocs = await getDeckTreeDocs(decktree);
+            Array.prototype.push.apply(docs, variantDocs);
+        }
+    
         return solr.add(docs);
     }
 };

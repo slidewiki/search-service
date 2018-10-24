@@ -93,5 +93,18 @@ let self = module.exports = {
         return self.query('select', query).then( (result) => {
             return result.response;
         });
+    }, 
+
+    getDeckVariants: function(deckId) {
+        let query = {
+            q: '*:*', 
+            fq: [
+                `db_id:${deckId}`
+            ], 
+            wt: 'json'
+        };
+        return self.query('select', query).then( (result) => {
+            return result.response;
+        });
     }
 };

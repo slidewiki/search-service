@@ -55,7 +55,7 @@ function index(collection, indexFunction){
 
 
 let collectionsToIndex = [
-    { name: 'users', indexMethod: users.insert.bind(this) },
+    // { name: 'users', indexMethod: users.insert.bind(this) },
     { name: 'decks', indexMethod: decktree.index.bind(this) }
 ];
 

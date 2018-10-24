@@ -5,51 +5,45 @@ const deckService = require('../../services/deck');
 const { getActiveRevision, getLanguageCodes, getFirstLevelContent, isRoot, getValue } = require('../lib/util');
 const _ = require('lodash');
 
-function prepareDocument(dbDeck){
+async function prepareDocument(decktree){
+    let deckId = decktree.id;
 
-    // transform deck database object
-    let activeRevision = getActiveRevision(dbDeck);
-    if(!activeRevision) return Promise.reject(`#Error: cannot find active revision of deck ${dbDeck._id}`);
-
-    let deckId = dbDeck._id;
-    let revisionId = activeRevision.id;
-    let langCodes = getLanguageCodes(activeRevision.language);
+    let forks = await deckService.getForkGroup(deckId);
+    let roots = await deckService.getDeckRootDecks(`${deckId}-${decktree.revision}`);
+    let langCodes = getLanguageCodes(decktree.language);
 
     let deck = {
-        solr_id: `deck_${deckId}`,
+        solr_id: `deck_${deckId}_${decktree.language}`,
         db_id: deckId,
-        db_revision_id: revisionId,
+        db_revision_id: decktree.revision,
         kind:'deck',
-        timestamp: dbDeck.timestamp,
-        lastUpdate: dbDeck.lastUpdate,
+        timestamp: decktree.timestamp,
+        lastUpdate: decktree.lastUpdate,
         language: langCodes.short,
-        creator: dbDeck.user,
-        contributors: (dbDeck.contributors || []).map( (contr) => { return contr.user; }),
-        tags: (_.compact(activeRevision.tags) || []).map( (tag) => { return tag.tagName; }),
-        revision_count: dbDeck.revisions.length
+        creator: decktree.user,
+        contributors: decktree.contributors,
+        tags: (_.compact(decktree.tags) || []),
+        isRoot: _.isEmpty(roots.filter( (rootDeck) => rootDeck.id !== deckId)), 
+        usage: roots.filter( (rootDeck) => !rootDeck.hidden).map( (u) => { return `${u.id}-${u.revision}`; }),
+        roots: roots.map( (u) => u.id),
+        origin: `deck_${_.min(forks)}`,
+        fork_count: forks.length,
     };
 
+    // if root, check current node for hidden
+    // if not root, check usage i.e. the non hidden root decks
+    deck.active = (deck.isRoot) ? !decktree.hidden : !_.isEmpty(deck.usage),
+    
     // add language specific fields
-    deck[`title_${langCodes.suffix}`] = getValue(activeRevision.title);
-    deck[`description_${langCodes.suffix}`] = getValue(dbDeck.description);
+    deck[`title_${langCodes.suffix}`] = getValue(decktree.title);
+    deck[`description_${langCodes.suffix}`] = getValue(decktree.description);
 
-    // fill extra metadata from other services
-    let forkGroupPromise = deckService.getForkGroup(deckId);
-    let rootDecksPromise = deckService.getDeckRootDecks(`${deckId}-${revisionId}`);
-    let deckTreePromise = deckService.getDeckTree(deckId);
-
-    return Promise.all([forkGroupPromise, rootDecksPromise, deckTreePromise]).then( ([forks, roots, decktree]) => {
-
-        // exclude self from root decks
-        deck.isRoot = _.isEmpty(roots.filter( (rootDeck) => rootDeck.id !== deckId));
-        deck.usage = roots.filter( (rootDeck) => !rootDeck.hidden).map( (u) => { return `${u.id}-${u.revision}`; });
-        deck.roots = roots.map( (u) => u.id);
-        deck.origin = `deck_${_.min(forks)}`;
-        deck.fork_count = forks.length;
-        deck.active = (deck.isRoot) ? !dbDeck.hidden : !_.isEmpty(deck.usage);
-        deck[`content_${langCodes.suffix}`] = getFirstLevelContent(decktree);
-        return deck;
-    });
+    let languageContent = getFirstLevelContent(decktree);
+    for (const languageSuffix in languageContent) {
+        deck[`content_${languageSuffix}`] = languageContent[languageSuffix]; 
+    }
+  
+    return deck;        
 }
 
 function updateDeckVisibility(deck, action, start, rows){
@@ -89,34 +83,59 @@ function checkDeckVisibility(doc, deck){
 }
 
 let self = module.exports = {
-    insert: function(dbDeck){
-        let updateContentsPromise;
-        if(!isRoot(dbDeck)) {
-            updateContentsPromise = Promise.resolve();
-        } else {
-            updateContentsPromise = solrClient.getById('deck', dbDeck._id).then( (doc) => {
-                let action = checkDeckVisibility(doc, dbDeck);
-                if(!action) return Promise.resolve();
+    insert: async function(deck){
+        let decktree = await deckService.getDeckTree(deck._id);
+        let docs = await prepareDocument(decktree); 
 
-                let start = 0, rows = 50;
-                return updateDeckVisibility(dbDeck, action, start, rows); 
-            });
+        for (const variant of decktree.variants.filter( (v) => !v.original)) {
+            decktree = await deckService.getDeckTree(deck._id, variant.language);
+            decktree.language = variant.language;
+            let variantDocs = await prepareDocument(decktree);
+            Array.prototype.push.apply(docs, variantDocs);
         }
-
-        let updateDeckPromise = prepareDocument(dbDeck).then( (deckDoc) => {
-            return solrClient.add(deckDoc);
-        });
-        
-        return Promise.all([updateDeckPromise, updateContentsPromise]);
+    
+        return solrClient.add(docs);
     }, 
 
     update: async function(deckId){
+        
+        // delete docs of this deck (original and translations)
+        let solrDeckId = `deck_${deckId}_*`;
+        await solrClient.delete(`solr_id:${solrDeckId}`);
+
+        // insert new docs for deck (original and translations)
         let deck = await deckService.getDeck(deckId);
-        return self.insert(deck);
+        await self.insert(deck);
+
+        // we need to check for visibility update only in root decks
+        let usage = await deckService.getDeckUsage(deckId);
+
+        if(!_.isEmpty(usage)) {
+            return Promise.resolve();
+        }
+
+        // get indexed deck variants and decide if visibility update is needed
+        let response = await solrClient.getDeckVariants(deckId);
+
+        if (response.numFound > 0) {
+            let doc = response.docs[0];
+            let action = checkDeckVisibility(doc, deck);
+        
+            // no update is needed, visibility not updated
+            if(!action) {
+                return Promise.resolve();
+            }
+
+            // we need to update deck contents' visibility
+            let start = 0, rows = 50;
+            return updateDeckVisibility(deck, action, start, rows);
+        }
+
+        return Promise.resolve();
     }, 
 
     archive: function(deckId){
-        let solrDeckId = `deck_${deckId}`;
+        let solrDeckId = `deck_${deckId}_*`;
 
         let deleteContentsPromise = solrClient.delete(`roots:${deckId}`);
         let deleteRootPromise = solrClient.delete(`solr_id:${solrDeckId}`);

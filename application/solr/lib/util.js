@@ -170,14 +170,26 @@ let self = module.exports = {
     },
     
     getFirstLevelContent: function(decktree) {
-        return decktree.contents.map( (item) => {
-            
+        let langFields = {};
+
+        for(const item of decktree.contents) {
+            let langCodes = self.getLanguageCodes(item.language);
+
+            let content;
             if (item.type === 'slide') {
-                return `${self.getValue(item.title)} ${self.stripHTML(self.getValue(item.content))} ${self.stripHTML(self.getValue(item.speakernotes))}`;
+                content = `${self.getValue(item.title)} ${self.stripHTML(self.getValue(item.content))} ${self.stripHTML(self.getValue(item.speakernotes))}`;
             } else if (item.type === 'deck') {
-                return `${self.getValue(item.title)} ${self.getValue(self.getValue(item.description))}`;
+                content = `${self.getValue(item.title)} ${self.getValue(self.getValue(item.description))}`;
             }
-        });
+
+            if (langFields.hasOwnProperty(langCodes.suffix)) {
+                langFields[langCodes.suffix].push(content);
+            } else {
+                langFields[langCodes.suffix] = [content];
+            }
+        }
+
+        return langFields;
     }, 
 
     highlight: function(docs, hl) {
