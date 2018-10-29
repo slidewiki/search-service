@@ -60,11 +60,11 @@ let self = module.exports = {
         });
     },
 
-    getDeckTree: function(deckId, language){
+    getDeckTree: function(deckId, firstLevel=false){
         return rp.get({
             uri: `${Microservices.deck.uri}/decktree/${deckId}/export`,
             qs: {
-                language: language || undefined,
+                firstLevel
             },
             json: true
         });

@@ -1,56 +1,68 @@
 'use strict';
 
-const solrClient = require('../lib/solrClient');
+const solr = require('../lib/solrClient');
 const deckService = require('../../services/deck');
-const { getActiveRevision, getLanguageCodes, getFirstLevelContent, isRoot, getValue } = require('../lib/util');
+const { 
+    getLanguageCodes, 
+    getFirstLevelContent, 
+    getValue,
+    toSolrIdentifier,
+    stringify,
+} = require('../lib/util');
 const _ = require('lodash');
 
-async function prepareDocument(decktree){
-    let deckId = decktree.id;
+async function getNodeDocument(deckNode){
 
-    let forks = await deckService.getForkGroup(deckId);
-    let roots = await deckService.getDeckRootDecks(`${deckId}-${decktree.revision}`);
-    let langCodes = getLanguageCodes(decktree.language);
+    let roots = await deckService.getDeckRootDecks(stringify(deckNode));
+    
+    let { short, suffix } = getLanguageCodes(deckNode.language);
 
-    let deck = {
-        solr_id: `deck_${deckId}_${decktree.language}`,
-        db_id: deckId,
-        db_revision_id: decktree.revision,
-        kind:'deck',
-        timestamp: decktree.timestamp,
-        lastUpdate: decktree.lastUpdate,
-        language: langCodes.short,
-        creator: decktree.user,
-        contributors: decktree.contributors,
-        tags: (_.compact(decktree.tags) || []),
-        isRoot: _.isEmpty(roots.filter( (rootDeck) => rootDeck.id !== deckId)), 
-        usage: roots.filter( (rootDeck) => !rootDeck.hidden).map( (u) => { return `${u.id}-${u.revision}`; }),
+    let doc = {
+        solr_id: toSolrIdentifier(deckNode),
+        db_id: deckNode.id,
+        db_revision_id: deckNode.revision,
+        kind: 'deck',
+        timestamp: deckNode.timestamp,
+        lastUpdate: deckNode.lastUpdate,
+        language: deckNode.variants.current,
+        originalVariant: deckNode.variants.original,
+        indexedAs: short,
+        allVariants: deckNode.variants.all,
+        theme: deckNode.theme,
+        educationLevel: deckNode.educationLevel,
+        firstSlide: deckNode.firstSlide,
+        creator: deckNode.owner,
+        contributors: deckNode.contributors,
+        tags: (_.compact(deckNode.tags) || []),
+        isRoot: _.isEmpty(roots.filter( (rootDeck) => rootDeck.id !== deckNode.id)), 
+        usage: roots.filter( (rootDeck) => !rootDeck.hidden).map( (u) => { return stringify(u); }),
         roots: roots.map( (u) => u.id),
-        origin: `deck_${_.min(forks)}`,
-        fork_count: forks.length,
+        origin: `deck_${_.min(deckNode.forkGroup)}`, 
+        fork_count: deckNode.forkGroup.length, 
+        revision_count: deckNode.revisionCount,
     };
 
     // if root, check current node for hidden
     // if not root, check usage i.e. the non hidden root decks
-    deck.active = (deck.isRoot) ? !decktree.hidden : !_.isEmpty(deck.usage),
+    doc.active = (doc.isRoot) ? !deckNode.hidden : !_.isEmpty(doc.usage),
     
     // add language specific fields
-    deck[`title_${langCodes.suffix}`] = getValue(decktree.title);
-    deck[`description_${langCodes.suffix}`] = getValue(decktree.description);
+    doc[`title_${suffix}`] = getValue(deckNode.title);
+    doc[`description_${suffix}`] = getValue(deckNode.description);
 
-    let languageContent = getFirstLevelContent(decktree);
+    let languageContent = getFirstLevelContent(deckNode.children);
     for (const languageSuffix in languageContent) {
-        deck[`content_${languageSuffix}`] = languageContent[languageSuffix]; 
+        doc[`content_${languageSuffix}`] = languageContent[languageSuffix]; 
     }
-  
-    return deck;        
+
+    return doc;    
 }
 
 function updateDeckVisibility(deck, action, start, rows){
     let deckId = deck._id;
-    let activeRevision = getActiveRevision(deck);
+    let revisionId = deck.revisionId;
 
-    return solrClient.getDeckContents(deckId, start, rows).then( (response) => {
+    return solr.getDeckContents(deckId, start, rows).then( (response) => {
         if(start + rows < response.numFound)
             updateDeckVisibility(deck, action, start + rows, rows);
 
@@ -58,7 +70,7 @@ function updateDeckVisibility(deck, action, start, rows){
             let usage = (doc.usage || []);
 
             if (action === 'show') {
-                usage.push(`${deckId}-${activeRevision.id}`);
+                usage.push(`${deckId}-${revisionId}`);
             } else {
                 usage = usage.filter( (item) => !item.startsWith(deckId.toString()));
             }
@@ -70,7 +82,7 @@ function updateDeckVisibility(deck, action, start, rows){
                 active: !_.isEmpty(usage)
             };
         });
-    }).then( (docs) => solrClient.add(docs));
+    }).then( (docs) => solr.add(docs));
 }
 
 function checkDeckVisibility(doc, deck){
@@ -83,62 +95,55 @@ function checkDeckVisibility(doc, deck){
 }
 
 let self = module.exports = {
-    insert: async function(deck){
-        let decktree = await deckService.getDeckTree(deck._id);
-        let docs = await prepareDocument(decktree); 
+    insert: async function(deckId) {
+        let docs = [];
+        let decktreeNodes = await deckService.getDeckTree(deckId, true);
 
-        for (const variant of decktree.variants.filter( (v) => !v.original)) {
-            decktree = await deckService.getDeckTree(deck._id, variant.language);
-            decktree.language = variant.language;
-            let variantDocs = await prepareDocument(decktree);
-            Array.prototype.push.apply(docs, variantDocs);
+        for (const deckNode of decktreeNodes) {
+            let nodeDoc = await getNodeDocument(deckNode);
+            docs.push(nodeDoc);
         }
-    
-        return solrClient.add(docs);
+
+        return solr.add(docs);
     }, 
 
-    update: async function(deckId){
-        
-        // delete docs of this deck (original and translations)
+    update: async function(deckId) {
+
+        // delete docs of current deck (original and translations)
         let solrDeckId = `deck_${deckId}_*`;
-        await solrClient.delete(`solr_id:${solrDeckId}`);
-
-        // insert new docs for deck (original and translations)
-        let deck = await deckService.getDeck(deckId);
-        await self.insert(deck);
-
-        // we need to check for visibility update only in root decks
+        await solr.delete(`solr_id:${solrDeckId}`);
+    
         let usage = await deckService.getDeckUsage(deckId);
 
-        if(!_.isEmpty(usage)) {
-            return Promise.resolve();
-        }
+        // index deck and translations
+        let promises = [];
+        promises.push(self.insert(deckId));
 
-        // get indexed deck variants and decide if visibility update is needed
-        let response = await solrClient.getDeckVariants(deckId);
+        // if current node is root, we need to check for visibility update
+        if (_.isEmpty(usage)) {
+            let response = await solr.getDeckVariants(deckId);
 
-        if (response.numFound > 0) {
-            let doc = response.docs[0];
-            let action = checkDeckVisibility(doc, deck);
-        
-            // no update is needed, visibility not updated
-            if(!action) {
-                return Promise.resolve();
+            if (response.numFound > 0) {
+                let doc = response.docs[0];
+                let deck = await deckService.getDeck(deckId);
+                let action = checkDeckVisibility(doc, deck);
+
+                // visibility of content nodes needs to be updated 
+                if(action) {
+                    let deckIds = _.pick(deck, ['_id', 'revisionId']);
+                    promises.push(updateDeckVisibility(deckIds, action, 0, 50));
+                }
             }
+        }        
 
-            // we need to update deck contents' visibility
-            let start = 0, rows = 50;
-            return updateDeckVisibility(deck, action, start, rows);
-        }
-
-        return Promise.resolve();
-    }, 
+        return Promise.all(promises);                                                                                                            
+    },
 
     archive: function(deckId){
         let solrDeckId = `deck_${deckId}_*`;
 
-        let deleteContentsPromise = solrClient.delete(`roots:${deckId}`);
-        let deleteRootPromise = solrClient.delete(`solr_id:${solrDeckId}`);
+        let deleteContentsPromise = solr.delete(`roots:${deckId}`);
+        let deleteRootPromise = solr.delete(`solr_id:${solrDeckId}`);
 
         return Promise.all([deleteRootPromise, deleteContentsPromise]);
     }

@@ -169,10 +169,10 @@ let self = module.exports = {
         return (value || '');
     },
     
-    getFirstLevelContent: function(decktree) {
+    getFirstLevelContent: function(contents) {
         let langFields = {};
 
-        for(const item of decktree.contents) {
+        for(const item of contents) {
             let langCodes = self.getLanguageCodes(item.language);
 
             let content;
@@ -215,5 +215,13 @@ let self = module.exports = {
         }
 
         return links;
-    }
+    }, 
+
+    toSolrIdentifier: function(deckNode) {
+        return `deck_${deckNode.id}_${deckNode.variants.current}`;
+    }, 
+
+    stringify: function(node){
+        return `${node.id}-${node.revision}`;
+    },
 };

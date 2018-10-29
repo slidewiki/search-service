@@ -27,7 +27,6 @@ async function index(collection) {
                 type: collection.type, 
                 event: 'insert', 
                 id: doc._id, 
-                eventData: doc,
             });
         }
     }

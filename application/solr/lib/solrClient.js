@@ -66,10 +66,10 @@ let self = module.exports = {
     }, 
 
     // real-time get via /get queryhandler
-    getById: function(type, solrId){
+    getById: function(solrId){
         
         let query = {
-            id: `${type}_${solrId}`, 
+            id: solrId, 
             wt: 'json'
         };
 
@@ -83,7 +83,7 @@ let self = module.exports = {
             q: '*:*', 
             fq: [
                 `roots:${deckId}`,
-                `!solr_id:deck_${deckId}`
+                `!solr_id:deck_${deckId}_*`
             ], 
             fl: 'solr_id,usage',
             start: start, 
