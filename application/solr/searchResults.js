@@ -63,7 +63,7 @@ function getFilters(params) {
         'active: true',
 
         // collapse results in origin field
-        '{!tag=collapseFilter}{!collapse field=origin sort="db_id asc, db_revision_id desc"}'
+        '{!tag=collapseFilter}{!collapse field=origin sort="db_id asc, isOriginal desc"}'
     ];
 
     // use tagged filter clauses, so we can exclude them when faceting

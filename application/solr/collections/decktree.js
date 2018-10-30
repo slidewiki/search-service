@@ -46,6 +46,9 @@ function getAddDocument(deckNode, rootDeck) {
         revision_count: deckNode.revisionCount,
     };
 
+    // tag original translation
+    doc.isOriginal = (doc.language === doc.originalVariant);
+
     // add language specific fields
     doc[`title_${suffix}`] = getValue(deckNode.title);
     doc[`description_${suffix}`] = getValue(deckNode.description);

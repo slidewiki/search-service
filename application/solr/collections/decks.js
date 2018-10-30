@@ -46,6 +46,9 @@ async function getNodeDocument(deckNode){
     // if not root, check usage i.e. the non hidden root decks
     doc.active = (doc.isRoot) ? !deckNode.hidden : !_.isEmpty(doc.usage),
     
+    // tag original translation
+    doc.isOriginal = (doc.language === doc.originalVariant);
+
     // add language specific fields
     doc[`title_${suffix}`] = getValue(deckNode.title);
     doc[`description_${suffix}`] = getValue(deckNode.description);

@@ -65,7 +65,38 @@ let self = module.exports = {
 
     expand: function(docs, expanded){
         return docs.map( (doc) => {
-            doc.forks = (expanded.hasOwnProperty(doc.origin)) ? expanded[doc.origin].docs : [];
+            doc.forks = [];
+            doc.translations = [];
+
+            if (expanded.hasOwnProperty(doc.origin)) {
+                expanded[doc.origin].docs.reduce( (arr, el) => {
+                    if (el.db_id === doc.db_id) {
+                        doc.translations.push(el);
+                    } else {
+                        doc.forks.push(el);
+                    }
+                    return arr;
+                }, []);
+            }
+
+            // we want to group translations of the same deck
+            // so we group by db_id and set as representative
+            // the original translations (if available)
+            let forks = [];
+            let groups = _.groupBy(doc.forks, 'db_id');
+            Object.keys(groups).forEach( (key, index) => {
+                let translations = groups[key];
+
+                let first = translations.find( (t) => t.isOriginal);
+                if (!first) {
+                    first = translations[0];
+                }
+                first.translations = translations.filter( (t) => {
+                    return t.solr_id !== first.solr_id;
+                });
+                forks.push(first);
+            });
+            doc.forks = forks;
             return doc;
         });
     }, 
