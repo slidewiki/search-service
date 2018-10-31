@@ -63,7 +63,7 @@ let plugins = [
 // start listening to mongo changes
 decksListener.listen();
 // slidesListener.listen();
-usersListener.listen();
+// usersListener.listen();
 
 const createIndexes = require('./database/createIndexes');
 

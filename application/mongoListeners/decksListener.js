@@ -27,7 +27,6 @@ module.exports = {
                         type: 'deck',
                         event: 'insert', 
                         id: event.data._id, 
-                        eventData: event.data,
                     };
                     break;
                 case 'update':

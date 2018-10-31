@@ -32,6 +32,10 @@ function getSolrParameters(params) {
         params.tag = params.tag.map( (t) => {return `"${t}"`;}).join(' OR ');
     }
 
+    if (params.educationLevel) {
+        params.educationLevel = params.educationLevel.join(' OR ');
+    }
+
     // set sorting field
     params.sort = (params.sort) ? params.sort : 'score';
     params.hl = (params.highlight) ? params.highlight : false;
@@ -63,7 +67,7 @@ function getFilters(params) {
         'active: true',
 
         // collapse results in origin field
-        '{!tag=collapseFilter}{!collapse field=origin sort="db_id asc, db_revision_id desc"}'
+        '{!tag=collapseFilter}{!collapse field=origin sort="db_id asc, isOriginal desc"}'
     ];
 
     // use tagged filter clauses, so we can exclude them when faceting
@@ -83,6 +87,10 @@ function getFilters(params) {
         filters.push(`{!tag=tagsFilter}tags:(${params.tag})`); 
     }
 
+    if(params.educationLevel) {
+        filters.push(`{!tag=educationLevelFilter}educationLevel:(${params.educationLevel})`);
+    }
+
     return filters;
 }
 
@@ -92,6 +100,7 @@ function getFacetFields(params) {
         '{!ex=languageFilter}language',
         '{!ex=usersFilter}creator',
         '{!ex=tagsFilter}tags',
+        '{!ex=educationLevelFilter}educationLevel',
     ];
 }
 function getJsonFacet(facet, excludedFields, exclude=true, facetPrefixField, facetPrefixValue) {
@@ -135,6 +144,7 @@ function getFacets(excludedFields, facetPrefixField, facetPrefixValue) {
         { field: 'language', excludeField: 'language', excludeFilter: 'languageFilter'},
         { field: 'creator', excludeField: 'user', excludeFilter: 'usersFilter'},
         { field: 'tags', excludeField: 'tag', excludeFilter: 'tagsFilter' },
+        { field: 'educationLevel', excludeField: 'educationLevel', excludeFilter: 'educationLevelFilter' },
     ];
 
     let jsonFacets = {};

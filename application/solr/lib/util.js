@@ -65,7 +65,38 @@ let self = module.exports = {
 
     expand: function(docs, expanded){
         return docs.map( (doc) => {
-            doc.forks = (expanded.hasOwnProperty(doc.origin)) ? expanded[doc.origin].docs : [];
+            doc.forks = [];
+            doc.translations = [];
+
+            if (expanded.hasOwnProperty(doc.origin)) {
+                expanded[doc.origin].docs.reduce( (arr, el) => {
+                    if (el.db_id === doc.db_id) {
+                        doc.translations.push(el);
+                    } else {
+                        doc.forks.push(el);
+                    }
+                    return arr;
+                }, []);
+            }
+
+            // we want to group translations of the same deck
+            // so we group by db_id and set as representative
+            // the original translations (if available)
+            let forks = [];
+            let groups = _.groupBy(doc.forks, 'db_id');
+            Object.keys(groups).forEach( (key, index) => {
+                let translations = groups[key];
+
+                let first = translations.find( (t) => t.isOriginal);
+                if (!first) {
+                    first = translations[0];
+                }
+                first.translations = translations.filter( (t) => {
+                    return t.solr_id !== first.solr_id;
+                });
+                forks.push(first);
+            });
+            doc.forks = forks;
             return doc;
         });
     }, 
@@ -118,6 +149,7 @@ let self = module.exports = {
         facets.language = facets.language.buckets;
         facets.creator = facets.creator.buckets;
         facets.tags = facets.tags.buckets;
+        facets.educationLevel = facets.educationLevel.buckets;
         return facets;
     },
 
@@ -126,6 +158,7 @@ let self = module.exports = {
             language: 'language', 
             user: 'creator',
             tag: 'tags',
+            educationLevel: 'educationLevel',
         }; 
 
         // For facet fields that are excluded
@@ -169,15 +202,27 @@ let self = module.exports = {
         return (value || '');
     },
     
-    getFirstLevelContent: function(decktree) {
-        return decktree.contents.map( (item) => {
-            
+    getFirstLevelContent: function(contents) {
+        let langFields = {};
+
+        for(const item of contents) {
+            let langCodes = self.getLanguageCodes(item.language);
+
+            let content;
             if (item.type === 'slide') {
-                return `${self.getValue(item.title)} ${self.stripHTML(self.getValue(item.content))} ${self.stripHTML(self.getValue(item.speakernotes))}`;
+                content = `${self.getValue(item.title)} ${self.stripHTML(self.getValue(item.content))} ${self.stripHTML(self.getValue(item.speakernotes))}`;
             } else if (item.type === 'deck') {
-                return `${self.getValue(item.title)} ${self.getValue(self.getValue(item.description))}`;
+                content = `${self.getValue(item.title)} ${self.getValue(self.getValue(item.description))}`;
             }
-        });
+
+            if (langFields.hasOwnProperty(langCodes.suffix)) {
+                langFields[langCodes.suffix].push(content);
+            } else {
+                langFields[langCodes.suffix] = [content];
+            }
+        }
+
+        return langFields;
     }, 
 
     highlight: function(docs, hl) {
@@ -203,5 +248,13 @@ let self = module.exports = {
         }
 
         return links;
-    }
+    }, 
+
+    toSolrIdentifier: function(deckNode) {
+        return `deck_${deckNode.id}_${deckNode.variants.current}`;
+    }, 
+
+    stringify: function(node){
+        return `${node.id}-${node.revision}`;
+    },
 };

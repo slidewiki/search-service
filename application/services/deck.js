@@ -18,6 +18,13 @@ let self = module.exports = {
         });
     },
 
+    getDeckUsage: function(deckId) {
+        return rp.get({
+            uri: `${Microservices.deck.uri}/deck/${deckId}/usage`, 
+            json: true
+        });
+    }, 
+
     getDeckDeepUsage: function(deckId){
         return rp.get({
             uri: `${Microservices.deck.uri}/deck/${deckId}/deepUsage`, 
@@ -53,9 +60,12 @@ let self = module.exports = {
         });
     },
 
-    getDeckTree: function(deckId){
+    getDeckTree: function(deckId, firstLevel=false){
         return rp.get({
-            uri: `${Microservices.deck.uri}/decktree/${deckId}/export`, 
+            uri: `${Microservices.deck.uri}/decktree/${deckId}/export`,
+            qs: {
+                firstLevel
+            },
             json: true
         });
     }

@@ -27,7 +27,6 @@ async function index(collection) {
                 type: collection.type, 
                 event: 'insert', 
                 id: doc._id, 
-                eventData: doc,
             });
         }
     }
@@ -40,7 +39,7 @@ async function scheduleJobs() {
 }
 
 let collectionsToIndex = [
-    { name: 'users', type: 'user' },
+    // { name: 'users', type: 'user' },
     { name: 'decks', type: 'decktree' }, 
 ];
 
