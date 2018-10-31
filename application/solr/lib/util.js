@@ -149,6 +149,7 @@ let self = module.exports = {
         facets.language = facets.language.buckets;
         facets.creator = facets.creator.buckets;
         facets.tags = facets.tags.buckets;
+        facets.educationLevel = facets.educationLevel.buckets;
         return facets;
     },
 
@@ -157,6 +158,7 @@ let self = module.exports = {
             language: 'language', 
             user: 'creator',
             tag: 'tags',
+            educationLevel: 'educationLevel',
         }; 
 
         // For facet fields that are excluded
