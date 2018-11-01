@@ -150,6 +150,7 @@ let self = module.exports = {
         facets.creator = facets.creator.buckets;
         facets.tags = facets.tags.buckets;
         facets.educationLevel = facets.educationLevel.buckets;
+        facets.topics = facets.topics.buckets;
         return facets;
     },
 
@@ -159,7 +160,8 @@ let self = module.exports = {
             user: 'creator',
             tag: 'tags',
             educationLevel: 'educationLevel',
-        }; 
+            topics: 'topics',
+        };
 
         // For facet fields that are excluded
         (query.facet_exclude || []).forEach( (excludedField) => {

@@ -33,7 +33,6 @@ async function getNodeDocument(deckNode){
         firstSlide: deckNode.firstSlide,
         creator: deckNode.owner,
         contributors: deckNode.contributors,
-        tags: (_.compact(deckNode.tags) || []),
         isRoot: _.isEmpty(roots.filter( (rootDeck) => rootDeck.id !== deckNode.id)), 
         usage: roots.filter( (rootDeck) => !rootDeck.hidden).map( (u) => { return stringify(u); }),
         roots: roots.map( (u) => u.id),
@@ -41,6 +40,12 @@ async function getNodeDocument(deckNode){
         fork_count: deckNode.forkGroup.length, 
         revision_count: deckNode.revisionCount,
     };
+
+    // we want to distinguish topics from simple tags
+    // topics are tags with tagType === 'topic' 
+    let tagTypes = _.groupBy(deckNode.tags, (t) => (t.tagType || 'none'));
+    doc.tags = _.compact(_.map(tagTypes.none || [], 'tagName'));
+    doc.topics = _.compact(_.map(tagTypes.topic || [], 'tagName'));
 
     // if root, check current node for hidden
     // if not root, check usage i.e. the non hidden root decks

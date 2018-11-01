@@ -36,6 +36,10 @@ function getSolrParameters(params) {
         params.educationLevel = params.educationLevel.join(' OR ');
     }
 
+    if (params.topics) {
+        params.topics = params.topics.join(' OR ');
+    }
+
     // set sorting field
     params.sort = (params.sort) ? params.sort : 'score';
     params.hl = (params.highlight) ? params.highlight : false;
@@ -71,24 +75,28 @@ function getFilters(params) {
     ];
 
     // use tagged filter clauses, so we can exclude them when faceting
-    if(params.kind) { 
+    if (params.kind) { 
         filters.push(`{!tag=kindFilter}kind:(${params.kind})`); 
     }
 
-    if(params.language) { 
+    if (params.language) { 
         filters.push(`{!tag=languageFilter}language:(${params.language})`); 
     }
 
-    if(params.user) { 
+    if (params.user) { 
         filters.push(`{!tag=usersFilter}creator:(${params.user})`); 
     }
 
-    if(params.tag) { 
+    if (params.tag) { 
         filters.push(`{!tag=tagsFilter}tags:(${params.tag})`); 
     }
 
-    if(params.educationLevel) {
+    if (params.educationLevel) {
         filters.push(`{!tag=educationLevelFilter}educationLevel:(${params.educationLevel})`);
+    }
+
+    if (params.topics) {
+        filters.push(`{!tag=topicsFilter}topics:(${params.topics})`);
     }
 
     return filters;
@@ -101,6 +109,7 @@ function getFacetFields(params) {
         '{!ex=usersFilter}creator',
         '{!ex=tagsFilter}tags',
         '{!ex=educationLevelFilter}educationLevel',
+        '{!ex=topicsFilter}topics',
     ];
 }
 function getJsonFacet(facet, excludedFields, exclude=true, facetPrefixField, facetPrefixValue) {
@@ -145,6 +154,7 @@ function getFacets(excludedFields, facetPrefixField, facetPrefixValue) {
         { field: 'creator', excludeField: 'user', excludeFilter: 'usersFilter'},
         { field: 'tags', excludeField: 'tag', excludeFilter: 'tagsFilter' },
         { field: 'educationLevel', excludeField: 'educationLevel', excludeFilter: 'educationLevelFilter' },
+        { field: 'topics', excludeField: 'topics', excludeFilter: 'topicsFilter' },
     ];
 
     let jsonFacets = {};
