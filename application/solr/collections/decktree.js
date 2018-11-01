@@ -36,7 +36,6 @@ function getAddDocument(deckNode, rootDeck) {
         firstSlide: deckNode.firstSlide,
         creator: deckNode.owner,
         contributors: deckNode.contributors,
-        tags: (_.compact(deckNode.tags) || []),
         isRoot: (deckNode.path.length === 1), 
         usage: (rootDeck.hidden) ? [] : stringify(rootDeck),
         roots: rootDeck.id, 
@@ -45,6 +44,12 @@ function getAddDocument(deckNode, rootDeck) {
         active: !rootDeck.hidden,
         revision_count: deckNode.revisionCount,
     };
+
+    // we want to distinguish topics from simple tags
+    // topics are tags with tagType === 'topic' 
+    let tagTypes = _.groupBy(deckNode.tags, (t) => (t.tagType || 'none'));
+    doc.tags = _.compact(_.map(tagTypes.none || [], 'tagName'));
+    doc.topics = _.compact(_.map(tagTypes.topic || [], 'tagName'));
 
     // tag original translation
     doc.isOriginal = (doc.language === doc.originalVariant);
