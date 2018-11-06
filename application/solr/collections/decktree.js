@@ -133,7 +133,10 @@ let self = module.exports = {
 
         for (const deckNode of decktreeNodes) {
             let nodeDoc = await getNodeDocument(deckNode);
-            docs.push(nodeDoc);
+
+            if (nodeDoc) {
+                docs.push(nodeDoc);
+            }
         }
 
         return solr.add(docs);
