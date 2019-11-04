@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+'use strict';
+
+const { solrConfig } = require('../configuration');
+const csvToJson = require('csvtojson');
+const solr = require('solr-client');
+const { promisify } = require('util');
+const rp = require('request-promise-native');
+const solrUri = `${solrConfig.PROTOCOL}://${solrConfig.HOST}:${solrConfig.PORT}${solrConfig.PATH}/${solrConfig.SKILLS_CORE}`;
+
+const solrClient = solr.createClient({
+    host: solrConfig.HOST,
+    port: solrConfig.PORT,
+    core: solrConfig.SKILLS_CORE,
+    path: solrConfig.PATH,
+    secure: (solrConfig.PROTOCOL === 'https')
+});
+
+let add = promisify(solrClient.add.bind(solrClient));
+
+(async function() {
+    await rp.get({ uri: `${solrUri}/update?stream.body=<delete><query>*:*</query></delete>&commit=true` });
+
+    let count = 0;
+    let p = Promise.resolve();
+    process.stdin.pipe(csvToJson()).on('data', (data) => {
+        let skill = JSON.parse(data);
+        skill.solr_id = `skill_${++count}`;
+        skill._id = count;
+        skill.altLabels = skill.altLabels.split('\n');
+
+        p = p.then(() => add(skill)).catch( (err) => {
+            console.log(err);
+        }).then( () => {
+            if (skill._id % 1000 === 0) {
+                console.log(`${skill._id} skills have been indexed`);
+            }
+        });
+    });
+})();

@@ -18,6 +18,7 @@ services:
       - DATABASE_URL=mongodb
       - DATABASE_PORT=27017
       - SOLR_CORE=swikcore
+      - SKILLS_CORE=swikskills
       - AGENDA_JOBS_COLLECTION=agendaJobs
       - AGENDA_JOBS_CONCURRENCY=2
     network_mode: bridge
@@ -34,6 +35,7 @@ services:
       - DATABASE_PORT=27017
       - SERVICE_URL_DECK=http://deckservice.experimental.slidewiki.org
       - SOLR_CORE=swikcore
+      - SKILLS_CORE=swikskills
       - AGENDA_JOBS_COLLECTION=agendaJobs
       - AGENDA_JOBS_CONCURRENCY=2
       - JOB_TYPES=searchUpdate
