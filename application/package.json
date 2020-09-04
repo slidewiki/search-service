@@ -41,7 +41,7 @@
     "joi": "^10.6.0",
     "lodash": "^4.17.4",
     "mongo-trigger": "^0.1.5",
-    "mongodb": "^2.2.28",
+    "mongodb": "^3.1.13",
     "progress": "^1.1.8",
     "request": "^2.87.0",
     "request-promise-native": "^1.0.3",
