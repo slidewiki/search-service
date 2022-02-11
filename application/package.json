@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "agenda": "^1.0.3",
-    "ajv": "^5.1.0",
+    "ajv": "^6.12.3",
     "async": "^2.2.0",
     "boom": "^5.1.0",
     "database-cleaner": "^1.2.0",
